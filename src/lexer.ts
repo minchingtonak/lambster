@@ -1,7 +1,7 @@
 import { Token } from "./token";
 import { TokenType } from "./tokentype";
-import './error';
 import { LambdaError } from "./error";
+import { SourceData } from "./sourcedata";
 
 export class Lexer {
     private source: string;
@@ -13,6 +13,11 @@ export class Lexer {
     //TODO generalize this lexer to take in arbitrary token rules
     constructor(source: string) {
         this.source = source;
+        SourceData.current_source = source;
+    }
+
+    constuctor() {
+        this.source = SourceData.current_source;
     }
 
     scanTokens(): Token[] {
@@ -21,7 +26,7 @@ export class Lexer {
             this.scanToken();
         }
 
-        this.tokens.push(new Token(TokenType.EOF, "", this.line));
+        this.tokens.push(this.genToken(TokenType.EOF, "", true));
         return this.tokens;
     }
 
@@ -52,7 +57,7 @@ export class Lexer {
                 if (this.isLowerAlpha(c)) {
                     this.identifier();
                 } else {
-                    this.error(c, "Unexpected character.")
+                    this.error(c, `Unexpected character '${c}'`);
                 }
         }
     }
@@ -92,11 +97,21 @@ export class Lexer {
     }
 
     private addToken(type: TokenType) {
-        this.tokens.push(new Token(type, this.source.substring(this.start, this.current), this.line));
+        this.tokens.push(this.genToken(type, this.source.substring(this.start, this.current)));
     }
 
     private error(character: string, message: string): LambdaError.LexError {
-        LambdaError.error(new Token(TokenType.ERROR, character, this.line), message);
+        LambdaError.error(this.genToken(TokenType.ERROR, character), message);
         return new LambdaError.LexError();
+    }
+
+    private genToken(type: TokenType, lexeme: string, eof = false): Token {
+        return new Token(
+            type,
+            lexeme,
+            this.line,
+            this.start + 1,
+            eof ? 0 : this.current - this.start
+        );
     }
 }

@@ -15,7 +15,7 @@ export class Parser {
         try {
             const parsed: Term = this.term();
             if (!this.isAtEnd())
-                throw this.error(this.peek(), `Unexpected token '${this.peek().lexeme}'`);
+                throw this.error(this.peek(), `Unexpected token '${this.peek().lexeme}'.`);
             return parsed;
         } catch (p) {
             return null;
@@ -34,7 +34,10 @@ export class Parser {
             TokenType.IDENTIFIER,
             "No identifier in abstraction definition."
         ).lexeme;
-        this.consume(TokenType.DOT, "No dot in abstraction definition.");
+        this.consume(
+            TokenType.DOT,
+            `Expected dot after abstraction definition, got '${this.peek().lexeme}'.`
+        );
         return new Abstraction(ident, this.term());
     }
 
@@ -51,14 +54,14 @@ export class Parser {
     private atom(): Term {
         if (this.match(TokenType.LPAREN)) {
             const term: Term = this.term();
-            this.consume(TokenType.RPAREN, "Expected ')' to close grouping.");
+            this.consume(TokenType.RPAREN, "Expected ')' to close expression.");
             //TODO consider adding explicit grouping ast node
             return term;
         }
 
         if (this.match(TokenType.IDENTIFIER)) return new Variable(this.previous().lexeme);
 
-        throw this.error(this.peek(), "Unexpected token.");
+        throw this.error(this.peek(), `Unexpected token '${this.peek().lexeme}'.`);
     }
 
     private match(...types: TokenType[]): boolean {

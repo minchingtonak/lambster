@@ -57,4 +57,8 @@ describe("Parser tests", () => {
     it("Error test 7", () => {
         expect(new Parser(new Lexer("Lx. z x ) x").scanTokens()).parseTerm()).to.be.a("null");
     });
+
+    it("Error test 8", () => {
+        expect(new Parser(new Lexer("Lx world. z x ) x").scanTokens()).parseTerm()).to.be.a("null");
+    });
 });
