@@ -1,0 +1,46 @@
+{
+    "name": "lambda-eval",
+    "version": "1.0.0",
+    "description": "Lambda calculus evaluator.",
+    "type": "commonjs",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "test": "mocha --require ts-node/register ./src/**/*.test.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@github.com/minchingtonak/lambda-eval.git"
+    },
+    "keywords": [
+        "lambda",
+        "calculus",
+        "functional"
+    ],
+    "author": "Alec Minchington",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/minchingtonak/lambda-eval/issues"
+    },
+    "homepage": "https://github.com/minchingtonak/lambda-eval#readme",
+    "devDependencies": {
+        "@types/chai": "^4.2.11",
+        "@types/mocha": "^7.0.2",
+        "babel-core": "^6.26.3",
+        "babel-register": "^6.26.0",
+        "chai": "^4.2.0",
+        "mocha": "^7.1.2",
+        "ts-node": "^8.10.1",
+        "typescript": "^3.8.3",
+        "yarn": "^1.22.4"
+    },
+    "prettier": {
+        "printWidth": 100,
+        "tabWidth": 4,
+        "semi": true,
+        "singleQuote": false,
+        "trailingComma": "es5",
+        "bracketSpacing": true,
+        "arrowParens": "avoid"
+    }
+}

@@ -1,0 +1,28 @@
+~= Grammar for lambda calculus =~
+
+expression  → IDENTIFIER
+            | abstraction
+            | application
+            | grouping ;
+abstraction      → LAMBDA IDENTIFIER "." expression ;
+application → expression expression ;
+grouping    → "(" expression ")" ;
+LAMBDA      → "L" | "λ" ;
+IDENTIFIER  → [a-z]+ ;
+
+
+~= Modified for recursive descent parsing =~
+
+term            → abstraction
+                | application ;
+abstraction     → LAMBDA IDENTIFIER "." term ;
+application     → atom atom* ;
+atom            → "(" term ")"
+                | IDENTIFIER ;
+
+
+~= Operator precedence table (descending precedence) =~
+
+Name 	        Associates
+Application     Left
+Abstraction     Extends as far to the right as possible
