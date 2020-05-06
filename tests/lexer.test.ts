@@ -1,6 +1,6 @@
-import { Lexer } from "./lexer";
-import { TokenType } from "./tokentype";
-import { Token } from "./token";
+import { Lexer } from "../src/lexer";
+import { TokenType } from "../src/tokentype";
+import { Token } from "../src/token";
 
 import * as mocha from "mocha";
 import * as chai from "chai";

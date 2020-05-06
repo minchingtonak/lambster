@@ -1,9 +1,9 @@
 import * as mocha from "mocha";
 import * as chai from "chai";
-import { AstPrinter } from "./astprinter";
-import { Parser } from "./parser";
-import { Lexer } from "./lexer";
-import { TokenType } from "./tokentype";
+import { AstPrinter } from "../src/astprinter";
+import { Parser } from "../src/parser";
+import { Lexer } from "../src/lexer";
+import { TokenType } from "../src/tokentype";
 
 const expect = chai.expect;
 
