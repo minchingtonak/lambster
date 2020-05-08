@@ -1,8 +1,8 @@
 import { Visitor, Term, Abstraction, Application, Variable } from "./ast";
 
 export class AstPrinter implements Visitor<string> {
-    print(expr: Term): string {
-        return expr.accept(this);
+    print(term: Term): string {
+        return term.accept(this);
     }
 
     visitAbstraction(abstraction: Abstraction): string {
