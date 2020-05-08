@@ -44,7 +44,11 @@ export class Parser {
     private application(): Term {
         let term: Term = this.atom();
 
-        while (this.check(TokenType.LPAREN) || this.check(TokenType.IDENTIFIER)) {
+        while (
+            this.check(TokenType.LPAREN) ||
+            this.check(TokenType.IDENTIFIER) ||
+            this.check(TokenType.LAMBDA)
+        ) {
             term = new Application(term, this.atom());
         }
 
@@ -55,11 +59,12 @@ export class Parser {
         if (this.match(TokenType.LPAREN)) {
             const term: Term = this.term();
             this.consume(TokenType.RPAREN, "Expected ')' to close expression.");
-            //TODO consider adding explicit grouping ast node
             return term;
         }
 
         if (this.match(TokenType.IDENTIFIER)) return new Variable(this.previous().lexeme);
+
+        if (this.match(TokenType.LAMBDA)) return this.abstraction();
 
         throw this.error(this.peek(), `Unexpected token '${this.peek().lexeme}'.`);
     }
@@ -104,7 +109,6 @@ export class Parser {
     }
 
     private error(token: Token, message: string): LambdaError.ParseError {
-        LambdaError.hasError = true;
         LambdaError.error(token, message);
         return new LambdaError.ParseError();
     }

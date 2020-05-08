@@ -18,7 +18,8 @@ term            → abstraction
 abstraction     → LAMBDA IDENTIFIER "." term ;
 application     → atom atom* ;
 atom            → "(" term ")"
-                | IDENTIFIER ;
+                | IDENTIFIER
+                | abstraction ;
 
 
 ~= Operator precedence table (descending precedence) =~
