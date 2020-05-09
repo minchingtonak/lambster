@@ -7,6 +7,8 @@ export interface Visitor<T> {
 export abstract class Term {
     abstract accept<T>(visitor: Visitor<T>): T;
     abstract rename(new_name: string, root: Abstraction): void;
+    abstract getAllBoundVariableNames(): Set<string>;
+    abstract getAllBoundVariables(): Variable[];
     parent: Term;
 }
 
@@ -106,6 +108,22 @@ export class Application extends Term {
         this.argument.rename(new_name, root);
     }
 
+    getAllBoundVariables(): Variable[] {
+        const vars: Variable[] = this.func.getAllBoundVariables();
+        this.argument.getAllBoundVariables().forEach(v => {
+            vars.push(v);
+        });
+        return vars;
+    }
+
+    getAllBoundVariableNames(): Set<string> {
+        const funcnames: Set<string> = this.func.getAllBoundVariableNames();
+        this.argument.getAllBoundVariableNames().forEach(name => {
+            funcnames.add(name);
+        });
+        return funcnames;
+    }
+
     accept<T>(visitor: Visitor<T>): T {
         return visitor.visitApplication(this);
     }
@@ -130,6 +148,22 @@ export class Variable extends Term {
 
     rename(new_name: string, root: Abstraction) {
         if (this.getParentAbstraction() === root) this.name = new_name;
+    }
+
+    renameFreeVariable(new_name: string) {
+        this.name = new_name;
+    }
+
+    isFreeVariable(): boolean {
+        return this.getParentAbstraction() === null;
+    }
+
+    getAllBoundVariables(): Variable[] {
+        return this.isFreeVariable() ? [] : [this];
+    }
+
+    getAllBoundVariableNames(): Set<string> {
+        return new Set<string>([this.name]);
     }
 
     accept<T>(visitor: Visitor<T>): T {
