@@ -1,3 +1,6 @@
+import { AstCloner } from "./astcloner";
+import { AstPrinter } from "./astprinter";
+
 export interface Visitor<T> {
     visitAbstraction(abstraction: Abstraction): T;
     visitApplication(application: Application): T;
@@ -101,6 +104,31 @@ export class Application extends Term {
         this.func = func;
         this.argument = argument;
         func.parent = argument.parent = this;
+    }
+
+    betaReduce(): Term {
+        const func: Abstraction = this.func as Abstraction;
+        const replacements: Variable[] = func.getBoundVariables();
+        const cloner: AstCloner = new AstCloner();
+        // replacements.forEach(rep => {
+        // (rep as Term) = cloner.clone(this.argument, rep.parent);
+        // });
+        replacements.forEach(rep => {
+            if (rep.parent instanceof Abstraction) {
+                rep.parent.body = cloner.clone(this.argument, rep.parent);
+            } else if (rep.parent instanceof Application) {
+                if (rep.parent.func === rep) {
+                    rep.parent.func = cloner.clone(this.argument, rep.parent);
+                } else {
+                    rep.parent.argument = cloner.clone(this.argument, rep.parent);
+                }
+            } else {
+                throw new Error("something is very wrong");
+            }
+        });
+        delete func.body.parent;
+        // func.body.parent = null;
+        return func.body;
     }
 
     rename(new_name: string, root: Abstraction) {

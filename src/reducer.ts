@@ -1,4 +1,5 @@
 import { Visitor, Term, Abstraction, Application, Variable } from "./ast";
+import { AstPrinter } from "./astprinter";
 
 export class Reducer implements Visitor<Term> {
     reduce(term: Term): Term {
@@ -50,13 +51,18 @@ export class Reducer implements Visitor<Term> {
         });
 
         // beta reduce x_normal into f_normal if f_normal is an abstraction
-
-        // reduce that beta-reduct into normal form
+        if (f_normal instanceof Abstraction) {
+            (application as Term) = application.betaReduce();
+            // reduce that beta-reduct into normal form
+            (application as Term) = this.reduce(application);
+        }
 
         return application;
     }
     visitVariable(variable: Variable): Term {
-        if (variable.isFreeVariable()) variable.renameFreeVariable(this.genNewFreeName());
+        // checking for apostrophe in name seems hacky, change later, maybe in favor of dedicated bool member or at least a function
+        // if (variable.isFreeVariable() && variable.name.indexOf("'") === -1)
+        //     variable.renameFreeVariable(this.genNewFreeName());
         return variable;
     }
 
