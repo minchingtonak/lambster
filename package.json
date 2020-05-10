@@ -1,5 +1,5 @@
 {
-    "name": "lambda-eval",
+    "name": "lambdacalculus",
     "version": "1.0.0",
     "description": "Lambda calculus evaluator.",
     "type": "commonjs",
@@ -10,7 +10,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+ssh://git@github.com/minchingtonak/lambda-eval.git"
+        "url": "git+ssh://git@github.com/minchingtonak/lambdacalculus.git"
     },
     "keywords": [
         "lambda",
@@ -20,9 +20,9 @@
     "author": "Alec Minchington",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/minchingtonak/lambda-eval/issues"
+        "url": "https://github.com/minchingtonak/lambdacalculus/issues"
     },
-    "homepage": "https://github.com/minchingtonak/lambda-eval#readme",
+    "homepage": "https://github.com/minchingtonak/lambdacalculus#readme",
     "devDependencies": {
         "@types/chai": "^4.2.11",
         "@types/mocha": "^7.0.2",
