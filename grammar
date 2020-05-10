@@ -8,7 +8,7 @@ abstraction      → LAMBDA IDENTIFIER "." expression ;
 application → expression expression ;
 grouping    → "(" expression ")" ;
 LAMBDA      → "L" | "λ" ;
-IDENTIFIER  → [a-z]+ ;
+IDENTIFIER  → [a-z0-9]+ ;
 
 
 ~= Modified for recursive descent parsing =~

@@ -54,7 +54,7 @@ export class Lexer {
                 ++this.line;
                 break;
             default:
-                if (this.isLowerAlpha(c)) {
+                if (this.isLowerAlphaNumeric(c)) {
                     this.identifier();
                 } else {
                     this.error(c, `Unexpected character '${c}'`);
@@ -63,7 +63,7 @@ export class Lexer {
     }
 
     private identifier() {
-        while (this.isLowerAlpha(this.peek())) this.advance();
+        while (this.isLowerAlphaNumeric(this.peek())) this.advance();
 
         //TODO add library lambdas, match them against scanned identifier
         this.addToken(TokenType.IDENTIFIER);
@@ -84,8 +84,8 @@ export class Lexer {
         return this.current + 1 >= this.source.length ? "\0" : this.source.charAt(this.current + 1);
     }
 
-    private isLowerAlpha(s: string): boolean {
-        return /^[a-z]$/.test(s);
+    private isLowerAlphaNumeric(s: string): boolean {
+        return /^[a-z0-9]$/.test(s);
     }
 
     private isAtEnd(): boolean {
