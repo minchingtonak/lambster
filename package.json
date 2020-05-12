@@ -6,7 +6,14 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-        "test": "mocha --require ts-node/register ./tests/**/*.test.ts"
+        "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/cli.ts",
+        "test": "mocha --require ts-node/register ./tests/**/*.test.ts",
+        "build": "tsc -p .",
+        "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
+        "clean": "rm -rf ./dist"
+    },
+    "bin": {
+        "lambdacalc": "dist/cli.js"
     },
     "repository": {
         "type": "git",
@@ -26,13 +33,15 @@
     "devDependencies": {
         "@types/chai": "^4.2.11",
         "@types/mocha": "^7.0.2",
+        "@types/node": "^13.13.5",
         "babel-core": "^6.26.3",
         "babel-register": "^6.26.0",
         "chai": "^4.2.0",
         "mocha": "^7.1.2",
         "ts-node": "^8.10.1",
         "typescript": "^3.8.3",
-        "yarn": "^1.22.4"
+        "yarn": "^1.22.4",
+        "nodemon": "^2.0.3"
     },
     "prettier": {
         "printWidth": 100,
@@ -42,5 +51,6 @@
         "trailingComma": "es5",
         "bracketSpacing": true,
         "arrowParens": "avoid"
-    }
+    },
+    "dependencies": {}
 }
