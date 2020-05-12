@@ -14,47 +14,30 @@ export class Reducer implements Visitor<Term> {
         const f_normal: Term = this.reduce(application.func);
         const x_normal: Term = this.reduce(application.argument);
 
+        if (f_normal instanceof Variable && x_normal instanceof Variable) return application;
+
         // If f_normal and application.argument have bound variables of the same name, alpha reduce application.argument
-
-        const conflicts: Set<string> = new Set<string>();
-        const f_names: Set<string> = f_normal.getAllBoundVariableNames();
-        const x_names: Set<string> = x_normal.getAllBoundVariableNames();
-        f_names.forEach(name => {
-            if (x_names.has(name)) conflicts.add(name);
-        });
-
-        // console.log()
-
-        // console.log("F_NAMES");
-        // console.log(f_names);
-
-        // console.log("X_NAMES");
-        // console.log(x_names);
-
-        // console.log("CONFLICTS");
-        // console.log(conflicts);
+        const x_names: Set<string> = x_normal.getAllBoundVariableNames(),
+            conflicts: Set<string> = new Set<string>(
+                [...f_normal.getAllBoundVariableNames()].filter(n => x_names.has(n))
+            );
 
         // get as set of all the parent abstractions of all bound vars of conflicting names
         // rename those abstractions
-        const abstractions: Set<Abstraction> = new Set<Abstraction>();
-        x_normal.getAllBoundVariables().forEach(v => {
-            if (conflicts.has(v.name)) abstractions.add(v.getParentAbstraction());
-        });
-
-        // console.log("ABSTRACTIONS");
-        // console.log(abstractions);
-
-        // console.log()
-
-        abstractions.forEach(abs => {
+        new Set<Abstraction>(
+            x_normal
+                .getAllBoundVariables()
+                .filter(v => conflicts.has(v.name))
+                .map(v => v.getParentAbstraction())
+        ).forEach(abs => {
             abs.alphaReduce(this.genNewName());
         });
 
         // beta reduce x_normal into f_normal if f_normal is an abstraction
         if (f_normal instanceof Abstraction) {
-            (application as Term) = application.betaReduce();
+            const reduct: Term = f_normal.betaReduce(x_normal);
             // reduce that beta-reduct into normal form
-            (application as Term) = this.reduce(application);
+            return this.reduce(reduct);
         }
 
         return application;
