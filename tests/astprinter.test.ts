@@ -1,7 +1,6 @@
-import * as mocha from "mocha";
 import * as chai from "chai";
 import { AstPrinter } from "../src/astprinter";
-import { Term, Application, Abstraction, Variable } from "../src/ast";
+import { Application, Abstraction, Variable } from "../src/ast";
 
 const expect = chai.expect;
 

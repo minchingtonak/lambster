@@ -1,4 +1,3 @@
-import * as mocha from "mocha";
 import * as chai from "chai";
 import { traverseAst } from './util'
 import { AstPrinter } from "../src/astprinter";

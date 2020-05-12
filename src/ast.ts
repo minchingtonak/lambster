@@ -10,11 +10,8 @@ export interface Visitor<T> {
 export abstract class Term {
     abstract accept<T>(visitor: Visitor<T>): T;
     abstract rename(new_name: string, root: Abstraction): void;
-    abstract getAllBoundVariableNames(): Set<string>;
-    abstract getAllBoundVariables(): Variable[];
-    toString(): string {
-        return 'helloworld';
-    }
+    abstract getAllBoundVarNames(): Set<string>;
+    abstract getAllBoundVars(): Variable[];
     parent: Term;
 }
 
@@ -33,13 +30,8 @@ export class Abstraction extends Term {
         this.rename(new_name, this);
     }
 
-    rename(new_name: string, root: Abstraction) {
-        this.body.rename(new_name, root);
-        if (this === root) this.name = new_name;
-    }
-
     betaReduce(argument: Term): Term {
-        const replacements: Variable[] = this.getBoundVariables();
+        const replacements: Variable[] = this.getBoundVars();
         const cloner: AstCloner = new AstCloner();
         replacements.forEach(rep => {
             if (rep.parent instanceof Abstraction) {
@@ -58,12 +50,25 @@ export class Abstraction extends Term {
         return this.body;
     }
 
-    getBoundVariables(): Variable[] {
+    rename(new_name: string, root: Abstraction) {
+        this.body.rename(new_name, root);
+        if (this === root) this.name = new_name;
+    }
+
+    getBoundVars(): Variable[] {
         return this.getVariables();
     }
 
-    getAllBoundVariables(): Variable[] {
+    getAllBoundVars(): Variable[] {
         return this.getVariables(true);
+    }
+
+    getBoundVarNames(): Set<string> {
+        return this.getNames();
+    }
+
+    getAllBoundVarNames(): Set<string> {
+        return this.getNames(true);
     }
 
     private getVariables(find_all = false): Variable[] {
@@ -76,14 +81,6 @@ export class Abstraction extends Term {
             find_all
         );
         return vars;
-    }
-
-    getBoundVariableNames(): Set<string> {
-        return this.getNames();
-    }
-
-    getAllBoundVariableNames(): Set<string> {
-        return this.getNames(true);
     }
 
     private getNames(find_all = false): Set<string> {
@@ -101,7 +98,7 @@ export class Abstraction extends Term {
     private findBoundVariables(
         current: Term,
         accumulator: (val: Variable) => void,
-        find_all = false
+        find_all: boolean
     ) {
         if (current instanceof Abstraction) {
             this.findBoundVariables(current.body, accumulator, find_all);
@@ -134,17 +131,17 @@ export class Application extends Term {
         this.argument.rename(new_name, root);
     }
 
-    getAllBoundVariables(): Variable[] {
-        const vars: Variable[] = this.func.getAllBoundVariables();
-        this.argument.getAllBoundVariables().forEach(v => {
+    getAllBoundVars(): Variable[] {
+        const vars: Variable[] = this.func.getAllBoundVars();
+        this.argument.getAllBoundVars().forEach(v => {
             vars.push(v);
         });
         return vars;
     }
 
-    getAllBoundVariableNames(): Set<string> {
-        const funcnames: Set<string> = this.func.getAllBoundVariableNames();
-        this.argument.getAllBoundVariableNames().forEach(name => {
+    getAllBoundVarNames(): Set<string> {
+        const funcnames: Set<string> = this.func.getAllBoundVarNames();
+        this.argument.getAllBoundVarNames().forEach(name => {
             funcnames.add(name);
         });
         return funcnames;
@@ -157,6 +154,7 @@ export class Application extends Term {
 
 export class Variable extends Term {
     name: string;
+    free_renamed: boolean = false;
 
     constructor(name: string) {
         super();
@@ -176,19 +174,20 @@ export class Variable extends Term {
         if (this.getParentAbstraction() === root) this.name = new_name;
     }
 
-    renameFreeVariable(new_name: string) {
+    renameFreeVar(new_name: string) {
+        this.free_renamed = true;
         this.name = new_name;
     }
 
-    isFreeVariable(): boolean {
+    isFreeVar(): boolean {
         return this.getParentAbstraction() === null;
     }
 
-    getAllBoundVariables(): Variable[] {
-        return this.isFreeVariable() ? [] : [this];
+    getAllBoundVars(): Variable[] {
+        return this.isFreeVar() ? [] : [this];
     }
 
-    getAllBoundVariableNames(): Set<string> {
+    getAllBoundVarNames(): Set<string> {
         return new Set<string>([this.name]);
     }
 

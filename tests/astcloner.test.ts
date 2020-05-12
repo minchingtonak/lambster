@@ -1,4 +1,3 @@
-import * as mocha from "mocha";
 import * as chai from "chai";
 import { Term, Application, Abstraction, Variable } from "../src/ast";
 import { Parser } from "../src/parser";
@@ -12,7 +11,7 @@ describe("AST cloner tests", () => {
     it("Basic clone test", () => {
         const tree: Term = new Parser(new Lexer("(Lx.x Ly.y y)").scanTokens()).parseTerm();
 
-        const copy: Term = new AstCloner().clone(tree);
+        const copy: Term = new AstCloner().clone(tree, null);
 
         const orig_terms: Term[] = [];
         traverseAst(tree, val => {
