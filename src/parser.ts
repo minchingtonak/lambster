@@ -36,7 +36,7 @@ export class Parser {
         ).lexeme;
         this.consume(
             TokenType.DOT,
-            `Expected dot after abstraction definition, got '${this.peek().lexeme}'.`
+            `Expected dot after abstraction declaration, got '${this.peek().lexeme}'.`
         );
         return new Abstraction(ident, this.term());
     }
