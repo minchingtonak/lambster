@@ -1,7 +1,7 @@
 import { Visitor, Term, Abstraction, Application, Variable } from "./ast";
 
 export class AstCloner implements Visitor<Term> {
-    clone(term: Term, new_parent: Term): Term {
+    clone(term: Term, new_parent = null): Term {
         const cloned: Term = term.accept(this);
         cloned.parent = new_parent;
         return cloned;
