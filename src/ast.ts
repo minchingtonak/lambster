@@ -33,7 +33,9 @@ export class Abstraction extends Term {
     }
 
     betaReduce(argument: Term, application_parent: Term): Term {
-        console.log(`β reducing ${new AstPrinter().print(argument)} into ${new AstPrinter().print(this)}`);
+        console.log(
+            `β reducing ${new AstPrinter().print(argument)} into ${new AstPrinter().print(this)}`
+        );
         const replacements: Variable[] = this.getBoundVars();
         if (replacements.length !== 0) {
             const cloner: AstCloner = new AstCloner();
@@ -161,6 +163,7 @@ export class Application extends Term {
 
 export class Variable extends Term {
     name: string;
+    is_free_var: boolean = undefined;
     free_renamed: boolean = false;
 
     constructor(name: string) {
@@ -169,6 +172,7 @@ export class Variable extends Term {
     }
 
     getParentAbstraction(): Abstraction {
+        if (this.is_free_var) return null;
         let current: Term = this.parent;
         while (current) {
             if (current instanceof Abstraction && this.name === current.name) return current;
@@ -187,7 +191,9 @@ export class Variable extends Term {
     }
 
     isFreeVar(): boolean {
-        return this.getParentAbstraction() === null;
+        return this.is_free_var === undefined
+            ? (this.is_free_var = this.getParentAbstraction() === null)
+            : this.is_free_var;
     }
 
     getAllBoundVars(): Variable[] {
