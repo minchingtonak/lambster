@@ -27,26 +27,33 @@ export class Abstraction extends Term {
     }
 
     alphaReduce(new_name: string) {
+        console.log(`α reducing ${new AstPrinter().print(this)} with ${new_name}`);
         this.rename(new_name, this);
+        console.log(`α > ${new AstPrinter().print(this)}`);
     }
 
-    betaReduce(argument: Term): Term {
+    betaReduce(argument: Term, application_parent: Term): Term {
+        console.log(`β reducing ${new AstPrinter().print(argument)} into ${new AstPrinter().print(this)}`);
         const replacements: Variable[] = this.getBoundVars();
-        const cloner: AstCloner = new AstCloner();
-        replacements.forEach(rep => {
-            if (rep.parent instanceof Abstraction) {
-                rep.parent.body = cloner.clone(argument, rep.parent);
-            } else if (rep.parent instanceof Application) {
-                if (rep.parent.func === rep) {
-                    rep.parent.func = cloner.clone(argument, rep.parent);
+        if (replacements.length !== 0) {
+            const cloner: AstCloner = new AstCloner();
+            replacements.forEach(rep => {
+                if (rep.parent instanceof Abstraction) {
+                    rep.parent.body = cloner.clone(argument, rep.parent);
+                } else if (rep.parent instanceof Application) {
+                    if (rep.parent.func === rep) {
+                        rep.parent.func = cloner.clone(argument, rep.parent);
+                    } else {
+                        rep.parent.argument = cloner.clone(argument, rep.parent);
+                    }
                 } else {
-                    rep.parent.argument = cloner.clone(argument, rep.parent);
+                    throw new Error("something is very wrong");
                 }
-            } else {
-                throw new Error("something is very wrong");
-            }
-        });
-        delete this.body.parent;
+            });
+        }
+        // The new parent of the reduct should be the parent of the surrounding application
+        this.body.parent = application_parent;
+        console.log(`β > ${new AstPrinter().print(this.body)}`);
         return this.body;
     }
 

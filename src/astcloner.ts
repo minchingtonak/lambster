@@ -8,12 +8,25 @@ export class AstCloner implements Visitor<Term> {
     }
 
     visitAbstraction(abstraction: Abstraction): Term {
-        return new Abstraction(abstraction.name, abstraction.body.accept(this));
+        return this.copyAtomicMembers(
+            new Abstraction(abstraction.name, abstraction.body.accept(this)),
+            abstraction
+        );
     }
     visitApplication(application: Application): Term {
-        return new Application(application.func.accept(this), application.argument.accept(this));
+        return this.copyAtomicMembers(
+            new Application(application.func.accept(this), application.argument.accept(this)),
+            application
+        );
     }
     visitVariable(variable: Variable): Term {
-        return new Variable(variable.name);
+        return this.copyAtomicMembers(new Variable(variable.name), variable);
+    }
+
+    private copyAtomicMembers(dest: Term, source: Term): Term {
+        Object.keys(source).forEach(key => {
+            if (typeof source[key] !== "object") dest[key] = source[key];
+        });
+        return dest;
     }
 }
