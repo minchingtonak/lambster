@@ -63,7 +63,7 @@ export module LambdaCalculus {
 
         if (LambdaError.hasError) return;
 
-        console.log(new AstPrinter().print(reducer.reduce(term)));
+        console.log(new AstPrinter().print(reducer.reduceTerm(term)));
     }
 
     function usage(args: string[]) {
