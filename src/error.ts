@@ -9,6 +9,7 @@ export module LambdaError {
     export let hasError: boolean = false;
 
     export function error(token: Token, message: string, verbose = true) {
+        hasError = true;
         console.log(
             `Error at ${
                 token.type === TokenType.EOF
@@ -23,7 +24,7 @@ export module LambdaError {
         let pointer: string = "";
         for (let i = 1; i < token.start + token.length; ++i)
             pointer += i >= token.start ? "^" : " ";
-        if (token.type === TokenType.EOF) pointer += ' ^';
+        if (token.type === TokenType.EOF) pointer += '^';
         console.log(`\t${SourceData.current_source}\n\t${pointer}\n`);
     }
 }

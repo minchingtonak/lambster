@@ -25,7 +25,7 @@ export class Lexer {
             this.start = this.current;
             this.scanToken();
         }
-
+        this.start = this.current;
         this.tokens.push(this.genToken(TokenType.EOF, "", true));
         return this.tokens;
     }
@@ -65,8 +65,9 @@ export class Lexer {
     private identifier() {
         while (this.isLowerAlphaNumeric(this.peek())) this.advance();
 
-        //TODO add library lambdas, match them against scanned identifier
-        this.addToken(TokenType.IDENTIFIER);
+        this.source.substring(this.start, this.current) === "lambda"
+            ? this.addToken(TokenType.LAMBDA)
+            : this.addToken(TokenType.IDENTIFIER);
     }
 
     private match(expected: string): boolean {
