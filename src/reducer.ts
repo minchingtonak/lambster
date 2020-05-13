@@ -19,7 +19,7 @@ export class Reducer implements Visitor<Term> {
         const f_normal: Term = this.reduce(application.func),
             x_normal: Term = this.reduce(application.argument);
 
-        if (f_normal instanceof Variable && x_normal instanceof Variable) return application;
+        if (!(f_normal instanceof Abstraction)) return application;
 
         // If f_normal and x_normal have bound variables of the same name, alpha reduce application.argument
         const x_names: Set<string> = x_normal.getAllBoundVarNames(),
