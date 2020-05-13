@@ -36,6 +36,9 @@ describe("AST cloner tests", () => {
             } else if (orig_terms[i] instanceof Variable) {
                 expect(copy_terms[i] instanceof Variable).to.equal(true);
                 expect((orig_terms[i] as Variable).name).to.equal((copy_terms[i] as Variable).name);
+                expect((orig_terms[i] as Variable).is_free_var).to.equal(
+                    (copy_terms[i] as Variable).is_free_var
+                );
             }
         }
     });
