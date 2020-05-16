@@ -4,6 +4,8 @@ export enum TokenType {
     LAMBDA,
     DOT,
     IDENTIFIER,
+    EQUALS,
+    NEWLINE,
     EOF,
     ERROR
 }

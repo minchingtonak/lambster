@@ -1,7 +1,7 @@
 import { Token } from "./token";
 import { TokenType } from "./tokentype";
 import { LambdaError } from "./error";
-import { Term, Abstraction, Variable, Application } from "./ast";
+import { Term, Abstraction, Variable, Application, Binding, Stmt } from "./ast";
 
 export class Parser {
     private tokens: Token[];
@@ -11,9 +11,15 @@ export class Parser {
         this.tokens = tokens;
     }
 
+    parse(): Stmt[] {
+        const stmts: Stmt[] = [];
+        while (!this.isAtEnd()) stmts.push(this.stmt());
+        return stmts;
+    }
+
     parseTerm(): Term {
         try {
-            const parsed: Term = this.term();
+            const parsed: Term = this.termStmt();
             if (!this.isAtEnd())
                 throw this.error(this.peek(), `Unexpected token '${this.peek().lexeme}'.`);
             return parsed;
@@ -22,11 +28,29 @@ export class Parser {
         }
     }
 
+    private stmt(): Stmt {
+        if (this.check(TokenType.IDENTIFIER) && this.checkNext(TokenType.EQUALS))
+            return this.binding();
+        return this.termStmt();
+    }
+
+    private binding(): Binding {
+        const ident: string = this.consume(TokenType.IDENTIFIER, "No identifier in binding.")
+            .lexeme;
+        this.consume(TokenType.EQUALS, "Expected '=' in binding.");
+        const term: Term = this.term();
+        this.consume(TokenType.NEWLINE, "Expected newline after binding statement.");
+        return new Binding(ident, term);
+    }
+
+    private termStmt(): Term {
+        const term: Term = this.term();
+        this.consume(TokenType.NEWLINE, "Expected newline after term.");
+        return term;
+    }
+
     private term(): Term {
-        if (this.match(TokenType.LAMBDA)) {
-            return this.abstraction();
-        }
-        return this.application();
+        return this.match(TokenType.LAMBDA) ? this.abstraction() : this.application();
     }
 
     private abstraction(): Term {
@@ -91,6 +115,11 @@ export class Parser {
         return this.peek().type === type;
     }
 
+    private checkNext(type: TokenType): boolean {
+        if (this.isAtEnd()) return false;
+        return this.peekNext().type === type;
+    }
+
     private advance(): Token {
         if (!this.isAtEnd()) this.current++;
         return this.previous();
@@ -102,6 +131,12 @@ export class Parser {
 
     private peek(): Token {
         return this.tokens[this.current];
+    }
+
+    private peekNext(): Token {
+        return this.current >= this.tokens.length
+            ? this.tokens[this.tokens.length - 1]
+            : this.tokens[this.current + 1];
     }
 
     private previous(): Token {

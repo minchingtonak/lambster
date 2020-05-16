@@ -26,6 +26,8 @@ export class Lexer {
             this.scanToken();
         }
         this.start = this.current;
+        if (this.tokens[this.tokens.length - 1].type !== TokenType.NEWLINE)
+            this.tokens.push(this.genToken(TokenType.NEWLINE, "<newline>", false, true));
         this.tokens.push(this.genToken(TokenType.EOF, "", true));
         return this.tokens;
     }
@@ -46,11 +48,15 @@ export class Lexer {
             case ".":
                 this.addToken(TokenType.DOT);
                 break;
+            case "=":
+                this.addToken(TokenType.EQUALS);
+                break;
             case " ":
             case "\t":
             case "\r":
                 break;
             case "\n":
+                this.addToken(TokenType.NEWLINE);
                 ++this.line;
                 break;
             default:
@@ -98,21 +104,22 @@ export class Lexer {
     }
 
     private addToken(type: TokenType) {
-        this.tokens.push(this.genToken(type, this.source.substring(this.start, this.current)));
+        const lexeme: string = this.source.substring(this.start, this.current);
+        this.tokens.push(this.genToken(type, lexeme === "\n" ? "<newline>" : lexeme));
     }
 
-    private error(character: string, message: string): LambdaError.LexError {
-        LambdaError.error(this.genToken(TokenType.ERROR, character), message);
-        return new LambdaError.LexError();
-    }
-
-    private genToken(type: TokenType, lexeme: string, eof = false): Token {
+    private genToken(type: TokenType, lexeme: string, eof = false, newline = false): Token {
         return new Token(
             type,
             lexeme,
             this.line,
             this.start + 1,
-            eof ? 0 : this.current - this.start
+            eof ? 0 : newline ? 1 : this.current - this.start
         );
+    }
+
+    private error(character: string, message: string): LambdaError.LexError {
+        LambdaError.error(this.genToken(TokenType.ERROR, character), message);
+        return new LambdaError.LexError();
     }
 }

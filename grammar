@@ -1,13 +1,19 @@
 ~= Grammar for lambda calculus =~
 
-expression  → IDENTIFIER
+program     → ( stmt )* EOF ;
+
+stmt        → binding
+            | termStmt ;
+termStmt    → term "\n" ;
+binding     → IDENTIFIER "=" expression "\n" ;
+term        → IDENTIFIER
             | abstraction
             | application
             | grouping ;
 abstraction      → LAMBDA IDENTIFIER "." expression ;
 application → expression expression ;
 grouping    → "(" expression ")" ;
-LAMBDA      → "L" | "λ" ;
+LAMBDA      → "L" | "λ" | "lambda" ;
 IDENTIFIER  → [a-z0-9]+ ;
 
 

@@ -1,14 +1,26 @@
 import { AstCloner } from "./astcloner";
 import { AstPrinter } from "./astprinter";
 
-export interface Visitor<T> {
+export interface TermVisitor<T> {
     visitAbstraction(abstraction: Abstraction): T;
     visitApplication(application: Application): T;
     visitVariable(variable: Variable): T;
 }
 
+export type Stmt = Binding | Term;
+
+export class Binding {
+    name: string;
+    term: Term;
+
+    constructor(name: string, term: Term) {
+        this.name = name;
+        this.term = term;
+    }
+}
+
 export abstract class Term {
-    abstract accept<T>(visitor: Visitor<T>): T;
+    abstract accept<T>(visitor: TermVisitor<T>): T;
     abstract rename(new_name: string, root: Abstraction): void;
     abstract getAllBoundVarNames(): Set<string>;
     abstract getAllBoundVars(): Variable[];
@@ -119,7 +131,7 @@ export class Abstraction extends Term {
         }
     }
 
-    accept<T>(visitor: Visitor<T>): T {
+    accept<T>(visitor: TermVisitor<T>): T {
         return visitor.visitAbstraction(this);
     }
 }
@@ -156,7 +168,7 @@ export class Application extends Term {
         return funcnames;
     }
 
-    accept<T>(visitor: Visitor<T>): T {
+    accept<T>(visitor: TermVisitor<T>): T {
         return visitor.visitApplication(this);
     }
 }
@@ -204,7 +216,7 @@ export class Variable extends Term {
         return new Set<string>([this.name]);
     }
 
-    accept<T>(visitor: Visitor<T>): T {
+    accept<T>(visitor: TermVisitor<T>): T {
         return visitor.visitVariable(this);
     }
 }
