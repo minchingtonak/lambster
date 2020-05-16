@@ -23,7 +23,7 @@ describe("AST operation tests", () => {
 
         const all: Variable[] = (tree as Abstraction).getAllBoundVars();
 
-        expect(all.length).to.equal(3);
+        expect(all.length).to.equal(1);
     });
 
     it("Test getBoundNames 1", () => {
@@ -35,8 +35,7 @@ describe("AST operation tests", () => {
 
         const all: Set<string> = (tree as Abstraction).getAllBoundVarNames();
 
-        expect(all.size).to.equal(2);
+        expect(all.size).to.equal(1);
         expect(all.has("x")).to.equal(true);
-        expect(all.has("y")).to.equal(true);
     });
 });
