@@ -120,7 +120,8 @@ export class Abstraction extends Term {
             this.findBoundVariables(current.func, accumulator, find_all);
             this.findBoundVariables(current.argument, accumulator, find_all);
         } else if (current instanceof Variable) {
-            if (current.getParentAbstraction() === this || find_all) accumulator(current);
+            if (current.getParentAbstraction() === this || (find_all && !current.isFreeVar()))
+                accumulator(current);
         }
     }
 
