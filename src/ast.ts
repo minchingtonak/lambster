@@ -169,7 +169,7 @@ export class Application extends Term {
 
 export class Variable extends Term {
     name: string;
-    is_free_var: boolean = undefined;
+    private is_free_var: boolean = undefined;
     free_renamed: boolean = false;
 
     constructor(name: string) {
