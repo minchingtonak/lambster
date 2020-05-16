@@ -1,5 +1,4 @@
 import { AstCloner } from "./astcloner";
-import { AstPrinter } from "./astprinter";
 
 export interface TermVisitor<T> {
     visitAbstraction(abstraction: Abstraction): T;
@@ -39,15 +38,10 @@ export class Abstraction extends Term {
     }
 
     alphaReduce(new_name: string) {
-        console.log(`α reducing ${new AstPrinter().print(this)} with ${new_name}`);
         this.rename(new_name, this);
-        console.log(`α > ${new AstPrinter().print(this)}`);
     }
 
     betaReduce(argument: Term, application_parent: Term): Term {
-        console.log(
-            `β reducing ${new AstPrinter().print(argument)} into ${new AstPrinter().print(this)}`
-        );
         const replacements: Variable[] = this.getBoundVars();
         if (replacements.length !== 0) {
             const cloner: AstCloner = new AstCloner();
@@ -67,7 +61,6 @@ export class Abstraction extends Term {
         }
         // The new parent of the reduct should be the parent of the surrounding application
         this.body.parent = application_parent;
-        console.log(`β > ${new AstPrinter().print(this.body)}`);
         return this.body;
     }
 

@@ -1,6 +1,6 @@
-import { Visitor, Term, Abstraction, Application, Variable } from "./ast";
+import { Abstraction, Application, Variable, Binding, TermVisitor, Term } from "./ast";
 
-export class AstPrinter implements Visitor<string> {
+export class AstPrinter implements TermVisitor<string> {
     print(term: Term): string {
         return term.accept(this);
     }
