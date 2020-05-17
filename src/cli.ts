@@ -2,18 +2,19 @@
 import { Lexer } from "./lexer";
 import { Token } from "./token";
 import { Parser } from "./parser";
-import { Term } from "./ast";
+import { Term, Stmt } from "./ast";
 import { AstPrinter } from "./astprinter";
 import { LambdaError } from "./error";
 import { Reducer } from "./reducer";
 import * as readline from "readline";
+import { Interpreter } from "./interpreter";
 
 export module LambdaCalculus {
     const reader = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
     });
-    const reducer: Reducer = new Reducer();
+    const interpreter: Interpreter = new Interpreter(true);
 
     export function main() {
         const args = process.argv.slice(1);
@@ -56,14 +57,14 @@ export module LambdaCalculus {
     }
 
     function run(source: string) {
-        const lexer: Lexer = new Lexer(source);
-        const tokens: Token[] = lexer.scanTokens();
-        const parser: Parser = new Parser(tokens);
-        const term: Term = parser.parseTerm();
+        const lexer: Lexer = new Lexer(source),
+            tokens: Token[] = lexer.scanTokens(),
+            parser: Parser = new Parser(tokens),
+            stmts: Stmt[] = parser.parse();
 
         if (LambdaError.hasError) return;
 
-        console.log(new AstPrinter().print(reducer.reduceTerm(term)));
+        interpreter.interpret(stmts);
     }
 
     function usage(args: string[]) {
