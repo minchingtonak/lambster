@@ -29,9 +29,14 @@ export class Parser {
     }
 
     private stmt(): Stmt {
-        if (this.check(TokenType.IDENTIFIER) && this.checkNext(TokenType.EQUALS))
-            return this.binding();
-        return this.termStmt();
+        try {
+            if (this.check(TokenType.IDENTIFIER) && this.checkNext(TokenType.EQUALS))
+                return this.binding();
+            return this.termStmt();
+        } catch (p) {
+            this.synchronize();
+            return null;
+        }
     }
 
     private binding(): Binding {
@@ -141,6 +146,15 @@ export class Parser {
 
     private previous(): Token {
         return this.tokens[this.current - 1];
+    }
+
+    private synchronize() {
+        this.advance();
+
+        while (!this.isAtEnd()) {
+            if (this.previous().type == TokenType.NEWLINE) return;
+            this.advance();
+        }
     }
 
     private error(token: Token, message: string): LambdaError.ParseError {
