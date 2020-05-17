@@ -5,10 +5,10 @@ import { AstPrinter } from "./astprinter";
 export class BindingResolver implements TermVisitor<Term> {
     private cloner: AstCloner = new AstCloner();
     private printer: AstPrinter = new AstPrinter();
-    private bindings: { [key: string]: Term };
+    private bindings;
     private expanded: boolean = false;
 
-    constructor(bindings: { [key: string]: Term }) {
+    constructor(bindings) {
         this.bindings = bindings;
     }
 
@@ -35,21 +35,11 @@ export class BindingResolver implements TermVisitor<Term> {
         return application;
     }
     visitVariable(variable: Variable): Term {
-        if (variable.name in this.bindings) {
-            const parent_abs: Abstraction = variable.getParentAbstraction();
-            if (!parent_abs) {
-                const replacement: Term = this.cloner.clone(
-                    this.bindings[variable.name],
-                    variable.parent
-                );
-                console.log(
-                    `\tExpanded '${variable.name}' into '${this.printer.print(
-                        this.bindings[variable.name]
-                    )}'`
-                );
-                this.expanded = true;
-                return replacement;
-            }
+        let binding: Term;
+        if (variable.isFreeVar() && (binding = this.bindings[variable.name])) {
+            console.log(`  Expanded '${variable.name}' into '${this.printer.print(binding)}'`);
+            this.expanded = true;
+            return this.resolve(this.cloner.clone(binding, variable.parent));
         }
         return variable;
     }
