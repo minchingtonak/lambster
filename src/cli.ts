@@ -2,19 +2,18 @@
 import { Lexer } from "./lexer";
 import { Token } from "./token";
 import { Parser } from "./parser";
-import { Term, Stmt } from "./ast";
-import { AstPrinter } from "./astprinter";
+import { Stmt } from "./ast";
 import { LambdaError } from "./error";
-import { Reducer } from "./reducer";
-import * as readline from "readline";
 import { Interpreter } from "./interpreter";
+import * as readline from "readline";
+import * as fs from "fs";
 
 export module LambdaCalculus {
     const reader = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
     });
-    const interpreter: Interpreter = new Interpreter(true);
+    const interpreter: Interpreter = new Interpreter(false);
 
     export function main() {
         const args = process.argv.slice(1);
@@ -29,12 +28,19 @@ export module LambdaCalculus {
                 usage(args);
                 break;
         }
+        process.exit(0);
     }
 
     function runFile(filename: string) {
-        // open file, send contents to run
-        // if haserror, exit 65
-        console.log("Hello, it seems like this isn't implemented yet.");
+        try {
+            const source = fs.readFileSync(filename, "utf-8");
+            run(source);
+            // https://www.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD%204.3-RELEASE&format=html
+            if (LambdaError.hasError) process.exit(65);
+        } catch (e) {
+            console.log(`Error: file '${filename}' not found.`);
+            process.exit(66);
+        }
     }
 
     async function runPrompt() {
