@@ -63,6 +63,11 @@ describe("Reduction tests", () => {
         expectTreeToReduceTo(tree, "z");
     });
 
+    it("Reduction test 2.5", () => {
+        const tree: Term = new Parser(new Lexer("(Lx. x x) (Ly. y)").scanTokens()).parseTerm();
+        expectTreeToReduceTo(tree, "(λx0. x0)");
+    });
+
     const t: string = "(Lt. Lf. t)";
     const f: string = "(Lt. Lf. f)";
     const and: string = "(La. Lb. a b a)";
@@ -111,5 +116,12 @@ describe("Reduction tests", () => {
 
         expectTreeToReduceTo(tree, "(λt. (λf. f))", true);
         expectTreeToReduceTo(tree, "(λt. (λf. f))");
+    });
+
+    it("Reduction test 8", () => {
+        const tree: Term = new Parser(new Lexer(`(Le.t)(Le.t)(Le.t)`).scanTokens()).parseTerm();
+
+        expectTreeToReduceTo(tree, "(x'0 (λe. x'2))", true);
+        expectTreeToReduceTo(tree, "(t (λe. t))");
     });
 });

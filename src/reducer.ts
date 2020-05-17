@@ -1,13 +1,21 @@
-import { Visitor, Term, Abstraction, Application, Variable } from "./ast";
+import { TermVisitor, Term, Abstraction, Application, Variable } from "./ast";
+import { AstCloner } from "./astcloner";
+import { AstPrinter } from "./astprinter";
 
-export class Reducer implements Visitor<Term> {
+export class Reducer implements TermVisitor<Term> {
     private rename_free_vars: boolean;
+    private redex: Term;
 
     constructor(rename_free_vars = false) {
         this.rename_free_vars = rename_free_vars;
     }
 
-    reduce(term: Term): Term {
+    reduceTerm(term: Term): Term {
+        this.redex = new AstCloner().clone(term);
+        return this.reduce(this.redex);
+    }
+
+    private reduce(term: Term): Term {
         return term.accept(this);
     }
 
@@ -16,8 +24,8 @@ export class Reducer implements Visitor<Term> {
         return abstraction;
     }
     visitApplication(application: Application): Term {
-        const f_normal: Term = this.reduce(application.func),
-            x_normal: Term = this.reduce(application.argument);
+        const f_normal: Term = (application.func = this.reduce(application.func)),
+            x_normal: Term = (application.argument = this.reduce(application.argument));
 
         if (!(f_normal instanceof Abstraction)) return application;
 
@@ -28,26 +36,42 @@ export class Reducer implements Visitor<Term> {
             );
 
         // For each abstraction containing conflicting bound variables, alpha reduce that abstraction
-        new Set<Abstraction>(
+        const conflicting_abs: Set<Abstraction> = new Set<Abstraction>(
             x_normal
                 .getAllBoundVars()
                 .filter(v => conflicts.has(v.name))
                 .map(v => v.getParentAbstraction())
-        ).forEach(abs => {
+        );
+        conflicting_abs.forEach(abs => {
             abs.alphaReduce(this.genNewName());
         });
+        if (conflicting_abs.size !== 0) console.log(`α > ${new AstPrinter().print(this.redex)}`);
 
-        // Beta reduce x_normal into f_normal if f_normal is an abstraction
-        // Then, reduce the result of that beta reduction to normal form
-        // Else, just return the alpha-reduced application
-        return f_normal instanceof Abstraction
-            ? this.reduce(f_normal.betaReduce(x_normal))
-            : application;
+        // Beta reduce x_normal into f_normal then reduce the result of that beta reduction to normal form
+        const beta_reduct: Term = f_normal.betaReduce(x_normal, application.parent);
+        if (application.parent) {
+            if (application.parent instanceof Abstraction) {
+                application.parent.body = beta_reduct;
+            } else if (application.parent instanceof Application) {
+                if (application.parent.func === application) {
+                    application.parent.func = beta_reduct;
+                } else if (application.parent.argument === application) {
+                    application.parent.argument = beta_reduct;
+                }
+            }
+        } else {
+            this.redex = beta_reduct;
+        }
+        console.log(`β > ${new AstPrinter().print(this.redex)}`);
+        return this.reduce(beta_reduct);
     }
     visitVariable(variable: Variable): Term {
         // Rename free variable to unambiguous name if initialized with rename_free_vars = true
-        if (this.rename_free_vars && !variable.free_renamed && variable.isFreeVar())
-            variable.renameFreeVar(this.genNewFreeName());
+        if (this.rename_free_vars && !variable.free_renamed && variable.isFreeVar()) {
+            const new_name: string = this.genNewFreeName();
+            console.log(`ε > '${variable.name}' → '${new_name}'`);
+            variable.renameFreeVar(new_name);
+        }
         return variable;
     }
 
