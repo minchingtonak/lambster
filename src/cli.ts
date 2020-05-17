@@ -20,7 +20,7 @@ export module LambdaCalculus {
         switch (args.length) {
             case 2:
                 runFile(args[1]);
-                break;
+                process.exit(0);
             case 1:
                 runPrompt();
                 break;
@@ -28,7 +28,6 @@ export module LambdaCalculus {
                 usage(args);
                 break;
         }
-        process.exit(0);
     }
 
     function runFile(filename: string) {
