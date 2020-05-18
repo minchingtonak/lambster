@@ -1,7 +1,7 @@
 import { Token } from "./token";
 import { TokenType } from "./tokentype";
-import { LambdaError } from "./error";
-import { SourceData } from "./sourcedata";
+import { reporter, LexError } from "./error";
+import sourcedata from "./sourcedata";
 
 export class Lexer {
     private source: string;
@@ -10,14 +10,11 @@ export class Lexer {
     private start: number = 0;
     private current: number = 0;
     private line: number = 1;
+    private linestart: number = 0;
     //TODO generalize this lexer to take in arbitrary token rules
     constructor(source: string) {
         this.source = source;
-        SourceData.current_source = source;
-    }
-
-    constuctor() {
-        this.source = SourceData.current_source;
+        sourcedata.setSource(source);
     }
 
     scanTokens(): Token[] {
@@ -58,6 +55,7 @@ export class Lexer {
             case "\n":
                 this.addToken(TokenType.NEWLINE);
                 ++this.line;
+                this.linestart = this.current;
                 break;
             default:
                 if (this.isLowerAlphaNumeric(c)) {
@@ -113,13 +111,13 @@ export class Lexer {
             type,
             lexeme,
             this.line,
-            this.start + 1,
+            this.start - this.linestart + 1,
             eof ? 0 : newline ? 1 : this.current - this.start
         );
     }
 
-    private error(character: string, message: string): LambdaError.LexError {
-        LambdaError.error(this.genToken(TokenType.ERROR, character), message);
-        return new LambdaError.LexError();
+    private error(character: string, message: string): LexError {
+        reporter.reportError(this.genToken(TokenType.ERROR, character), message);
+        return new LexError();
     }
 }

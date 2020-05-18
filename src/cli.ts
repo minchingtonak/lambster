@@ -3,7 +3,7 @@ import { Lexer } from "./lexer";
 import { Token } from "./token";
 import { Parser } from "./parser";
 import { Stmt } from "./ast";
-import { LambdaError } from "./error";
+import { reporter } from "./error";
 import { Interpreter } from "./interpreter";
 import logger from "./logger";
 import * as readline from "readline";
@@ -59,7 +59,7 @@ export module LambdaCalculus {
             const source = fs.readFileSync(filename, "utf-8");
             run(source);
             // https://www.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD%204.3-RELEASE&format=html
-            if (LambdaError.hasError) process.exit(65);
+            if (reporter.hasError) process.exit(65);
         } catch (e) {
             console.log(`Error: file '${filename}' not found.`);
             process.exit(66);
@@ -81,7 +81,7 @@ export module LambdaCalculus {
         });
         for (;;) {
             run(await waitForLine("λ> "));
-            LambdaError.hasError = false;
+            reporter.hasError = false;
         }
     }
 
@@ -91,7 +91,7 @@ export module LambdaCalculus {
             parser: Parser = new Parser(tokens),
             stmts: Stmt[] = parser.parse();
 
-        if (LambdaError.hasError) return;
+        if (reporter.hasError) return;
 
         interpreter.interpret(stmts);
     }

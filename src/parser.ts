@@ -1,6 +1,6 @@
 import { Token } from "./token";
 import { TokenType } from "./tokentype";
-import { LambdaError } from "./error";
+import { reporter, ParseError } from "./error";
 import { Term, Abstraction, Variable, Application, Binding, Stmt } from "./ast";
 
 export class Parser {
@@ -157,8 +157,8 @@ export class Parser {
         }
     }
 
-    private error(token: Token, message: string): LambdaError.ParseError {
-        LambdaError.error(token, message);
-        return new LambdaError.ParseError();
+    private error(token: Token, message: string): ParseError {
+        reporter.reportError(token, message);
+        return new ParseError();
     }
 }
