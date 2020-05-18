@@ -2,9 +2,10 @@ import { Stmt, Term, Abstraction, Variable, Application } from "./ast";
 import { Reducer } from "./reducer";
 import { BindingResolver } from "./bindingresolver";
 import { AstPrinter } from "./astprinter";
+import logger from "./logger";
 
 export class Interpreter {
-    private bindings = new Proxy(
+    private bindings: { [key: string]: Term } =
         // Process multikeys
         (dict => {
             Object.keys(dict).forEach(key => {
@@ -344,15 +345,8 @@ export class Interpreter {
                     )
                 )
             ),
-        }),
-        {
-            get: (target, property: string | number | symbol, receiver) => {
-                for (let key in target)
-                    if (new RegExp(key).test(property.toString())) return target[key];
-                return null;
-            },
-        }
-    );
+        });
+
     private rename_free_vars: boolean;
     private printer: AstPrinter = new AstPrinter();
     private resolver: BindingResolver = new BindingResolver(this.bindings);
@@ -364,7 +358,7 @@ export class Interpreter {
     interpret(stmts: Stmt[]) {
         stmts.forEach(stmt => {
             if (stmt instanceof Term) {
-                console.log(
+                logger.log(
                     `>>> ${this.printer.print(
                         new Reducer(this.rename_free_vars).reduceTerm(
                             this.resolver.resolveTerm(stmt)

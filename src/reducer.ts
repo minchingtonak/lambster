@@ -1,6 +1,7 @@
 import { TermVisitor, Term, Abstraction, Application, Variable } from "./ast";
 import { AstCloner } from "./astcloner";
 import { AstPrinter } from "./astprinter";
+import logger from "./logger";
 
 export class Reducer implements TermVisitor<Term> {
     private rename_free_vars: boolean;
@@ -45,7 +46,7 @@ export class Reducer implements TermVisitor<Term> {
         conflicting_abs.forEach(abs => {
             abs.alphaReduce(this.genNewName());
         });
-        if (conflicting_abs.size !== 0) console.log(`α > ${new AstPrinter().print(this.redex)}`);
+        if (conflicting_abs.size !== 0) logger.vlog(`α > ${new AstPrinter().print(this.redex)}`);
 
         // Beta reduce x_normal into f_normal then reduce the result of that beta reduction to normal form
         const beta_reduct: Term = f_normal.betaReduce(x_normal, application.parent);
@@ -62,14 +63,14 @@ export class Reducer implements TermVisitor<Term> {
         } else {
             this.redex = beta_reduct;
         }
-        console.log(`β > ${new AstPrinter().print(this.redex)}`);
+        logger.vlog(`β > ${new AstPrinter().print(this.redex)}`);
         return this.reduce(beta_reduct);
     }
     visitVariable(variable: Variable): Term {
         // Rename free variable to unambiguous name if initialized with rename_free_vars = true
         if (this.rename_free_vars && !variable.free_renamed && variable.isFreeVar()) {
             const new_name: string = this.genNewFreeName();
-            console.log(`ε > '${variable.name}' → '${new_name}'`);
+            logger.vlog(`ε > '${variable.name}' → '${new_name}'`);
             variable.renameFreeVar(new_name);
         }
         return variable;

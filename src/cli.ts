@@ -5,6 +5,7 @@ import { Parser } from "./parser";
 import { Stmt } from "./ast";
 import { LambdaError } from "./error";
 import { Interpreter } from "./interpreter";
+import logger from "./logger";
 import * as readline from "readline";
 import * as fs from "fs";
 
@@ -16,18 +17,41 @@ export module LambdaCalculus {
     const interpreter: Interpreter = new Interpreter(false);
 
     export function main() {
-        const args = process.argv.slice(1);
-        switch (args.length) {
-            case 2:
-                runFile(args[1]);
+        try {
+            const args: { [key: string]: string } = parseArgs();
+            if ("filename" in args) {
+                runFile(args["filename"]);
                 process.exit(0);
-            case 1:
-                runPrompt();
-                break;
-            default:
-                usage(args);
-                break;
+            }
+            runPrompt();
+        } catch (e) {
+            logger.log(e.message);
+            usage();
+            process.exit(64);
         }
+    }
+
+    function parseArgs(): { [key: string]: string } {
+        const obj: { [key: string]: string } = {};
+        process.argv.slice(2).forEach(arg => {
+            if (arg.startsWith("-")) {
+                switch (arg.substr(1)) {
+                    case "v":
+                        logger.incrVerbosity(1);
+                        break;
+                    case "vv":
+                        logger.incrVerbosity(2);
+                        break;
+                    default:
+                        throw new Error(`Failed to parse arguments: unexpected option '${arg}'`);
+                }
+            } else {
+                if ("filename" in obj)
+                    throw new Error(`Failed to parse arguments: unexpected '${arg}'`);
+                obj["filename"] = arg;
+            }
+        });
+        return obj;
     }
 
     function runFile(filename: string) {
@@ -72,8 +96,8 @@ export module LambdaCalculus {
         interpreter.interpret(stmts);
     }
 
-    function usage(args: string[]) {
-        console.log(`Usage: ${args[0]} [FILE]`);
+    function usage() {
+        logger.log(`Usage: ${process.argv[2]} (-v|-vv)? [FILE]`);
     }
 }
 
