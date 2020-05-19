@@ -56,13 +56,18 @@ export module LambdaCalculus {
 
     function runFile(filename: string) {
         try {
-            const source = fs.readFileSync(filename, "utf-8");
+            const source: string = fs.readFileSync(filename, "utf-8");
             run(source);
             // https://www.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD%204.3-RELEASE&format=html
             if (reporter.hasError) process.exit(65);
         } catch (e) {
-            console.log(`Error: file '${filename}' not found.`);
-            process.exit(66);
+            if (e.code === "ENOENT") {
+                logger.log(`Error: file '${filename}' not found.`);
+                process.exit(66);
+            } else {
+                logger.log("Uh oh. Something went wrong. Here's the error:");
+                logger.log(e);
+            }
         }
     }
 

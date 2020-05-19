@@ -23,7 +23,7 @@ export class Lexer {
             this.scanToken();
         }
         this.start = this.current;
-        if (this.tokens[this.tokens.length - 1].type !== TokenType.NEWLINE)
+        if (this.tokens.length && this.tokens[this.tokens.length - 1].type !== TokenType.NEWLINE)
             this.tokens.push(this.genToken(TokenType.NEWLINE, "<newline>", false, true));
         this.tokens.push(this.genToken(TokenType.EOF, "", true));
         return this.tokens;
