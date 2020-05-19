@@ -1,5 +1,5 @@
-import { AstCloner } from "./astcloner";
 import logger from "./logger";
+import cloneAst from "./astcloner";
 import printAst from "./astprinter";
 
 export interface TermVisitor<T> {
@@ -52,15 +52,14 @@ export class Abstraction extends Term {
         );
         const replacements: Variable[] = this.getBoundVars();
         if (replacements.length !== 0) {
-            const cloner: AstCloner = new AstCloner();
             replacements.forEach(rep => {
                 if (rep.parent instanceof Abstraction) {
-                    rep.parent.body = cloner.clone(argument, rep.parent);
+                    rep.parent.body = cloneAst(argument, rep.parent);
                 } else if (rep.parent instanceof Application) {
                     if (rep.parent.func === rep) {
-                        rep.parent.func = cloner.clone(argument, rep.parent);
+                        rep.parent.func = cloneAst(argument, rep.parent);
                     } else {
-                        rep.parent.argument = cloner.clone(argument, rep.parent);
+                        rep.parent.argument = cloneAst(argument, rep.parent);
                     }
                 } else {
                     throw new Error("something is very wrong");

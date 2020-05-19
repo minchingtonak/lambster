@@ -1,5 +1,5 @@
 import { TermVisitor, Term, Abstraction, Application, Variable } from "./ast";
-import { AstCloner } from "./astcloner";
+import cloneAst from "./astcloner";
 import printAst from "./astprinter";
 import logger from "./logger";
 
@@ -12,7 +12,7 @@ export class Reducer implements TermVisitor<Term> {
     }
 
     reduceTerm(term: Term): Term {
-        this.redex = new AstCloner().clone(term);
+        this.redex = cloneAst(term);
         return this.reduce(this.redex);
     }
 
