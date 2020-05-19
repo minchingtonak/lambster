@@ -1,5 +1,5 @@
 import * as chai from "chai";
-import { AstPrinter } from "../src/astprinter";
+import printAst from "../src/astprinter";
 import { Reducer } from "../src/reducer";
 import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";
@@ -9,7 +9,7 @@ const expect = chai.expect;
 
 describe("Reduction tests", () => {
     function expectTreeToBe(tree: Term, expected: string) {
-        expect(new AstPrinter().print(tree)).to.equal(expected);
+        expect(printAst(tree)).to.equal(expected);
     }
 
     function expectTreeToReduceTo(tree: Term, expected: string, rename_free = false) {

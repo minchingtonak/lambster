@@ -1,7 +1,7 @@
 import { Stmt, Term, Abstraction, Variable, Application } from "./ast";
 import { Reducer } from "./reducer";
 import { BindingResolver } from "./bindingresolver";
-import { AstPrinter } from "./astprinter";
+import printAst from "./astprinter";
 import logger from "./logger";
 
 export class Interpreter {
@@ -348,7 +348,6 @@ export class Interpreter {
         });
 
     private rename_free_vars: boolean;
-    private printer: AstPrinter = new AstPrinter();
     private resolver: BindingResolver = new BindingResolver(this.bindings);
 
     constructor(rename_free_vars: boolean) {
@@ -356,14 +355,14 @@ export class Interpreter {
     }
 
     interpret(stmts: Stmt[]) {
-        stmts.forEach(stmt => {
+        stmts.forEach((stmt, idx) => {
             if (stmt instanceof Term) {
                 logger.log(
-                    `>>> ${this.printer.print(
+                    `>>> ${printAst(
                         new Reducer(this.rename_free_vars).reduceTerm(
                             this.resolver.resolveTerm(stmt)
                         )
-                    )}`
+                    )}${idx === stmts.length - 1 ? "" : "\n"}`
                 );
             } else {
                 this.bindings[stmt.name] = stmt.term;

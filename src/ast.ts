@@ -1,6 +1,6 @@
 import { AstCloner } from "./astcloner";
 import logger from "./logger";
-import { AstPrinter } from "./astprinter";
+import printAst from "./astprinter";
 
 export interface TermVisitor<T> {
     visitAbstraction(abstraction: Abstraction): T;
@@ -40,13 +40,13 @@ export class Abstraction extends Term {
     }
 
     alphaReduce(new_name: string) {
-        logger.vvlog(`Alpha reducing '${new AstPrinter().print(this)}' with name '${new_name}'`)
+        logger.vvlog(`Alpha reducing '${printAst(this)}' with name '${new_name}'`)
         this.rename(new_name, this);
     }
 
     betaReduce(argument: Term, application_parent: Term): Term {
         logger.vvlog(
-            `Beta reducing '${new AstPrinter().print(argument)}' into '${new AstPrinter().print(
+            `Beta reducing '${printAst(argument)}' into '${printAst(
                 this
             )}'`
         );
