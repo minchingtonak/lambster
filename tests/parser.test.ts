@@ -1,6 +1,6 @@
 import * as chai from "chai";
-import { traverseAst } from './util'
-import printAst from "../src/astprinter";
+import { traverseAst } from "./util";
+import { printTerm } from "../src/termprinter";
 import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";
 import { Application, Abstraction, Variable, Term } from "../src/ast";
@@ -9,31 +9,27 @@ const expect = chai.expect;
 
 describe("Parser tests", () => {
     it("Basic parse test", () => {
-        expect(
-            printAst(new Parser(new Lexer("(Lx.x)(Ly.y)").scanTokens()).parseTerm())
-        ).to.equal("((λx. x) (λy. y))");
+        expect(printTerm(new Parser(new Lexer("(Lx.x)(Ly.y)").scanTokens()).parseTerm())).to.equal(
+            "((λx. x) (λy. y))"
+        );
     });
 
     it("Parse test 2", () => {
         expect(
-            printAst(
-                new Parser(new Lexer("((λx. (x x)) (λy. (y y)))").scanTokens()).parseTerm()
-            )
+            printTerm(new Parser(new Lexer("((λx. (x x)) (λy. (y y)))").scanTokens()).parseTerm())
         ).to.equal("((λx. (x x)) (λy. (y y)))");
     });
 
     it("Parse test 3", () => {
-        expect(
-            printAst(
-                new Parser(new Lexer("(Lx.x Ly.y y)").scanTokens()).parseTerm()
-            )
-        ).to.equal("(λx. (x (λy. (y y))))");
+        expect(printTerm(new Parser(new Lexer("(Lx.x Ly.y y)").scanTokens()).parseTerm())).to.equal(
+            "(λx. (x (λy. (y y))))"
+        );
     });
 
     it("Associativity test 1", () => {
-        expect(
-            printAst(new Parser(new Lexer("Lx.x x x x").scanTokens()).parseTerm())
-        ).to.equal("(λx. (((x x) x) x))");
+        expect(printTerm(new Parser(new Lexer("Lx.x x x x").scanTokens()).parseTerm())).to.equal(
+            "(λx. (((x x) x) x))"
+        );
     });
 
     it("Parent assignment test", () => {

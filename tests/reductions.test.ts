@@ -1,5 +1,5 @@
 import * as chai from "chai";
-import printAst from "../src/astprinter";
+import { printTerm } from "../src/termprinter";
 import { Reducer } from "../src/reducer";
 import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";
@@ -9,7 +9,7 @@ const expect = chai.expect;
 
 describe("Reduction tests", () => {
     function expectTreeToBe(tree: Term, expected: string) {
-        expect(printAst(tree)).to.equal(expected);
+        expect(printTerm(tree)).to.equal(expected);
     }
 
     function expectTreeToReduceTo(tree: Term, expected: string, rename_free = false) {
@@ -76,18 +76,14 @@ describe("Reduction tests", () => {
     const if_: string = `(Lp. Lz. Lw. p z w)`;
 
     it("Reduction test 3", () => {
-        const tree: Term = new Parser(
-            new Lexer(`${and} ${t} bool`).scanTokens()
-        ).parseTerm();
+        const tree: Term = new Parser(new Lexer(`${and} ${t} bool`).scanTokens()).parseTerm();
 
         expectTreeToReduceTo(tree, "x'0", true);
         expectTreeToReduceTo(tree, "bool");
     });
 
     it("Reduction test 4", () => {
-        const tree: Term = new Parser(
-            new Lexer(`(${and} ${f}) bool`).scanTokens()
-        ).parseTerm();
+        const tree: Term = new Parser(new Lexer(`(${and} ${f}) bool`).scanTokens()).parseTerm();
 
         expectTreeToReduceTo(tree, "(λt. (λx0. x0))", true);
         expectTreeToReduceTo(tree, "(λt. (λx0. x0))");

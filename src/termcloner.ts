@@ -1,7 +1,7 @@
 import { TermVisitor, Term, Abstraction, Application, Variable } from "./ast";
 
-class AstCloner implements TermVisitor<Term> {
-    clone(term: Term, new_parent = null): Term {
+class TermCloner implements TermVisitor<Term> {
+    clone(term: Term, new_parent: Term): Term {
         const cloned: Term = term.accept(this);
         cloned.parent = new_parent;
         return cloned;
@@ -31,5 +31,8 @@ class AstCloner implements TermVisitor<Term> {
     }
 }
 
-const cloner: AstCloner = new AstCloner();
-export default (term: Term, new_parent = null) => cloner.clone(term, new_parent);
+const cloner: TermCloner = new TermCloner();
+function cloneTerm(term: Term, new_parent = null): Term {
+    return cloner.clone(term, new_parent);
+}
+export { cloneTerm };

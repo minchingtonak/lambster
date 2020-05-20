@@ -1,7 +1,7 @@
 import { Abstraction, Application, Variable, TermVisitor, Term } from "./ast";
 
-class AstPrinter implements TermVisitor<string> {
-    printAst(term: Term): string {
+class TermPrinter implements TermVisitor<string> {
+    printTerm(term: Term): string {
         return term.accept(this);
     }
 
@@ -15,5 +15,8 @@ class AstPrinter implements TermVisitor<string> {
         return variable.name;
     }
 }
-const printer: AstPrinter = new AstPrinter();
-export default (term: Term) => printer.printAst(term);
+const printer: TermPrinter = new TermPrinter();
+function printTerm(term: Term): string {
+    return printer.printTerm(term);
+}
+export { printTerm };

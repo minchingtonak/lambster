@@ -1,6 +1,6 @@
 import { TermVisitor, Term, Abstraction, Application, Variable } from "./ast";
-import cloneAst from "./astcloner";
-import printAst from "./astprinter";
+import { cloneTerm } from "./termcloner";
+import { printTerm } from "./termprinter";
 import logger from "./logger";
 
 export class BindingResolver implements TermVisitor<Term> {
@@ -15,7 +15,7 @@ export class BindingResolver implements TermVisitor<Term> {
         const resolved: Term = this.resolve(term);
         if (this.expanded) {
             this.expanded = false;
-            logger.vlog(`Δ > ${printAst(resolved)}`);
+            logger.vlog(`Δ > ${printTerm(resolved)}`);
         }
         return resolved;
     }
@@ -36,9 +36,9 @@ export class BindingResolver implements TermVisitor<Term> {
     visitVariable(variable: Variable): Term {
         let binding: Term;
         if (variable.isFreeVar() && (binding = this.bindings[variable.name])) {
-            logger.vlog(`    δ > '${variable.name}' → '${printAst(binding)}'`);
+            logger.vlog(`    δ > expanded '${variable.name}' into '${printTerm(binding)}'`);
             this.expanded = true;
-            return this.resolve(cloneAst(binding, variable.parent));
+            return this.resolve(cloneTerm(binding, variable.parent));
         }
         return variable;
     }

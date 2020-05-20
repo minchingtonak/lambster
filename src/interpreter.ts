@@ -13,7 +13,7 @@ import {
 } from "./ast";
 import { Reducer } from "./reducer";
 import { BindingResolver } from "./bindingresolver";
-import printAst from "./astprinter";
+import { printTerm } from "./termprinter";
 import logger from "./logger";
 
 export class Interpreter implements StmtVisitor<void> {
@@ -373,9 +373,9 @@ export class Interpreter implements StmtVisitor<void> {
     }
 
     visitTermStmt(term_stmt: TermStmt): void {
-        logger.vlog(`λ > ${printAst(term_stmt.term)}`);
+        logger.vlog(`λ > ${printTerm(term_stmt.term)}`);
         logger.log(
-            `>>> ${printAst(
+            `>>> ${printTerm(
                 new Reducer(this.rename_free_vars).reduceTerm(
                     this.resolver.resolveTerm(term_stmt.term)
                 )
@@ -398,7 +398,7 @@ export class Interpreter implements StmtVisitor<void> {
 
     private printBindings() {
         Object.entries(this.bindings).forEach(binding => {
-            logger.log(`${binding[0]}:\t${printAst(binding[1])}`);
+            logger.log(`${binding[0]}:\t${printTerm(binding[1])}`);
         });
     }
 }

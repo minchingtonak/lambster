@@ -2,7 +2,7 @@ import * as chai from "chai";
 import { Term, Application, Abstraction, Variable } from "../src/ast";
 import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";
-import cloneAst from "../src/astcloner";
+import { cloneTerm } from "../src/termcloner";
 import { traverseAst } from "./util";
 
 const expect = chai.expect;
@@ -11,7 +11,7 @@ describe("AST cloner tests", () => {
     it("Basic clone test", () => {
         const tree: Term = new Parser(new Lexer("(Lx.x Ly.y y)").scanTokens()).parseTerm();
 
-        const copy: Term = cloneAst(tree, null);
+        const copy: Term = cloneTerm(tree, null);
 
         const orig_terms: Term[] = [];
         traverseAst(tree, val => {

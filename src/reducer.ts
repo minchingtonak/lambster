@@ -1,6 +1,6 @@
 import { TermVisitor, Term, Abstraction, Application, Variable } from "./ast";
-import cloneAst from "./astcloner";
-import printAst from "./astprinter";
+import { cloneTerm } from "./termcloner";
+import { printTerm } from "./termprinter";
 import logger from "./logger";
 
 export class Reducer implements TermVisitor<Term> {
@@ -12,7 +12,7 @@ export class Reducer implements TermVisitor<Term> {
     }
 
     reduceTerm(term: Term): Term {
-        this.redex = cloneAst(term);
+        this.redex = cloneTerm(term);
         return this.reduce(this.redex);
     }
 
@@ -46,7 +46,7 @@ export class Reducer implements TermVisitor<Term> {
         conflicting_abs.forEach(abs => {
             abs.alphaReduce(this.genNewName());
         });
-        if (conflicting_abs.size !== 0) logger.vlog(`α > ${printAst(this.redex)}`);
+        if (conflicting_abs.size !== 0) logger.vlog(`α > ${printTerm(this.redex)}`);
 
         // Beta reduce x_normal into f_normal then reduce the result of that beta reduction to normal form
         const beta_reduct: Term = f_normal.betaReduce(x_normal, application.parent);
@@ -63,7 +63,7 @@ export class Reducer implements TermVisitor<Term> {
         } else {
             this.redex = beta_reduct;
         }
-        logger.vlog(`β > ${printAst(this.redex)}`);
+        logger.vlog(`β > ${printTerm(this.redex)}`);
         return this.reduce(beta_reduct);
     }
     visitVariable(variable: Variable): Term {

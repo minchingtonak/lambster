@@ -1,6 +1,6 @@
 import logger from "./logger";
-import cloneAst from "./astcloner";
-import printAst from "./astprinter";
+import { cloneTerm } from "./termcloner";
+import { printTerm } from "./termprinter";
 
 export interface TermVisitor<T> {
     visitAbstraction(abstraction: Abstraction): T;
@@ -81,22 +81,22 @@ export class Abstraction extends Term {
     }
 
     alphaReduce(new_name: string) {
-        logger.vvlog(`Alpha reducing '${printAst(this)}' with name '${new_name}'`);
+        logger.vvlog(`Alpha reducing '${printTerm(this)}' with name '${new_name}'`);
         this.rename(new_name, this);
     }
 
     betaReduce(argument: Term, application_parent: Term): Term {
-        logger.vvlog(`Beta reducing '${printAst(argument)}' into '${printAst(this)}'`);
+        logger.vvlog(`Beta reducing '${printTerm(argument)}' into '${printTerm(this)}'`);
         const replacements: Variable[] = this.getBoundVars();
         if (replacements.length !== 0) {
             replacements.forEach(rep => {
                 if (rep.parent instanceof Abstraction) {
-                    rep.parent.body = cloneAst(argument, rep.parent);
+                    rep.parent.body = cloneTerm(argument, rep.parent);
                 } else if (rep.parent instanceof Application) {
                     if (rep.parent.func === rep) {
-                        rep.parent.func = cloneAst(argument, rep.parent);
+                        rep.parent.func = cloneTerm(argument, rep.parent);
                     } else {
-                        rep.parent.argument = cloneAst(argument, rep.parent);
+                        rep.parent.argument = cloneTerm(argument, rep.parent);
                     }
                 } else {
                     throw new Error("something is very wrong");
