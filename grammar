@@ -3,9 +3,13 @@
 program     → ( stmt )* EOF ;
 
 stmt        → binding
-            | termStmt ;
+            | command
+            | termStmt
+            | "\n" ;
+bindingStmt → IDENTIFIER "=" expression "\n" ;
+commandStmt → "env" "\n"
+            | "unbind" IDENTIFIER "\n" ;
 termStmt    → term "\n" ;
-binding     → IDENTIFIER "=" expression "\n" ;
 term        → IDENTIFIER
             | abstraction
             | application

@@ -1,7 +1,17 @@
 import { Token } from "./token";
 import { TokenType } from "./tokentype";
 import { reporter, ParseError } from "./error";
-import { Term, Abstraction, Variable, Application, Binding, Stmt } from "./ast";
+import {
+    Term,
+    Abstraction,
+    Variable,
+    Application,
+    BindingStmt,
+    Stmt,
+    CommandStmt,
+    CommandType,
+    TermStmt,
+} from "./ast";
 
 export class Parser {
     private tokens: Token[];
@@ -19,10 +29,10 @@ export class Parser {
 
     parseTerm(): Term {
         try {
-            const parsed: Term = this.termStmt();
+            const parsed: TermStmt = this.termStmt();
             if (!this.isAtEnd())
                 throw this.error(this.peek(), `Unexpected token '${this.peek().lexeme}'.`);
-            return parsed;
+            return parsed.term;
         } catch (p) {
             return null;
         }
@@ -30,8 +40,11 @@ export class Parser {
 
     private stmt(): Stmt {
         try {
+            while (this.peek().type === TokenType.NEWLINE) this.advance();
             if (this.check(TokenType.IDENTIFIER) && this.checkNext(TokenType.EQUALS))
-                return this.binding();
+                return this.bindingStmt();
+            else if (this.match(TokenType.ENV)) return this.envStmt();
+            else if (this.match(TokenType.UNBIND)) return this.unbindStmt();
             return this.termStmt();
         } catch (p) {
             this.synchronize();
@@ -39,19 +52,33 @@ export class Parser {
         }
     }
 
-    private binding(): Binding {
+    private bindingStmt(): BindingStmt {
         const ident: string = this.consume(TokenType.IDENTIFIER, "No identifier in binding.")
             .lexeme;
         this.consume(TokenType.EQUALS, "Expected '=' in binding.");
         const term: Term = this.term();
         this.consume(TokenType.NEWLINE, "Expected newline after binding statement.");
-        return new Binding(ident, term);
+        return new BindingStmt(ident, term);
     }
 
-    private termStmt(): Term {
+    private envStmt(): CommandStmt {
+        this.consume(TokenType.NEWLINE, "Expected newline after env command.");
+        return new CommandStmt(CommandType.ENV);
+    }
+
+    private unbindStmt(): CommandStmt {
+        const ident: string = this.consume(
+            TokenType.IDENTIFIER,
+            "No identifier in unbind statement."
+        ).lexeme;
+        this.consume(TokenType.NEWLINE, "Expected newline after unbind command.");
+        return new CommandStmt(CommandType.UNBIND, ident);
+    }
+
+    private termStmt(): TermStmt {
         const term: Term = this.term();
         this.consume(TokenType.NEWLINE, "Expected newline after term.");
-        return term;
+        return new TermStmt(term);
     }
 
     private term(): Term {

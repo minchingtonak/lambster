@@ -8,15 +8,56 @@ export interface TermVisitor<T> {
     visitVariable(variable: Variable): T;
 }
 
-export type Stmt = Binding | Term;
+export interface StmtVisitor<T> {
+    visitTermStmt(term_stmt: TermStmt): T;
+    visitBindingStmt(binding: BindingStmt): T;
+    visitCommandStmt(command: CommandStmt): T;
+}
 
-export class Binding {
+export type Stmt = TermStmt | BindingStmt | CommandStmt;
+
+export class TermStmt {
+    term: Term;
+
+    constructor(term: Term) {
+        this.term = term;
+    }
+
+    accept<T>(visitor: StmtVisitor<T>) {
+        return visitor.visitTermStmt(this);
+    }
+}
+
+export class BindingStmt {
     name: string;
     term: Term;
 
     constructor(name: string, term: Term) {
         this.name = name;
         this.term = term;
+    }
+
+    accept<T>(visitor: StmtVisitor<T>) {
+        return visitor.visitBindingStmt(this);
+    }
+}
+
+export enum CommandType {
+    ENV,
+    UNBIND,
+}
+
+export class CommandStmt {
+    type: CommandType;
+    argument?: string;
+
+    constructor(type: CommandType, argument = undefined) {
+        this.type = type;
+        this.argument = argument;
+    }
+
+    accept<T>(visitor: StmtVisitor<T>) {
+        return visitor.visitCommandStmt(this);
     }
 }
 
@@ -40,16 +81,12 @@ export class Abstraction extends Term {
     }
 
     alphaReduce(new_name: string) {
-        logger.vvlog(`Alpha reducing '${printAst(this)}' with name '${new_name}'`)
+        logger.vvlog(`Alpha reducing '${printAst(this)}' with name '${new_name}'`);
         this.rename(new_name, this);
     }
 
     betaReduce(argument: Term, application_parent: Term): Term {
-        logger.vvlog(
-            `Beta reducing '${printAst(argument)}' into '${printAst(
-                this
-            )}'`
-        );
+        logger.vvlog(`Beta reducing '${printAst(argument)}' into '${printAst(this)}'`);
         const replacements: Variable[] = this.getBoundVars();
         if (replacements.length !== 0) {
             replacements.forEach(rep => {

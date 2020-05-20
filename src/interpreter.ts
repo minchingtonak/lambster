@@ -1,10 +1,22 @@
-import { Stmt, Term, Abstraction, Variable, Application } from "./ast";
+import {
+    Stmt,
+    Term,
+    Abstraction,
+    Variable,
+    Application,
+    TermVisitor,
+    StmtVisitor,
+    TermStmt,
+    BindingStmt,
+    CommandStmt,
+    CommandType,
+} from "./ast";
 import { Reducer } from "./reducer";
 import { BindingResolver } from "./bindingresolver";
 import printAst from "./astprinter";
 import logger from "./logger";
 
-export class Interpreter {
+export class Interpreter implements StmtVisitor<void> {
     private bindings: { [key: string]: Term } =
         // Process multikeys
         (dict => {
@@ -355,18 +367,38 @@ export class Interpreter {
     }
 
     interpret(stmts: Stmt[]) {
-        stmts.forEach((stmt, idx) => {
-            if (stmt instanceof Term) {
-                logger.log(
-                    `>>> ${printAst(
-                        new Reducer(this.rename_free_vars).reduceTerm(
-                            this.resolver.resolveTerm(stmt)
-                        )
-                    )}${idx === stmts.length - 1 ? "" : "\n"}`
-                );
-            } else {
-                this.bindings[stmt.name] = stmt.term;
-            }
+        stmts.forEach(stmt => {
+            stmt.accept(this);
+        });
+    }
+
+    visitTermStmt(term_stmt: TermStmt): void {
+        logger.vlog(`λ > ${printAst(term_stmt.term)}`);
+        logger.log(
+            `>>> ${printAst(
+                new Reducer(this.rename_free_vars).reduceTerm(
+                    this.resolver.resolveTerm(term_stmt.term)
+                )
+            )}\n`
+        );
+    }
+    visitBindingStmt(binding: BindingStmt): void {
+        this.bindings[binding.name] = binding.term;
+    }
+    visitCommandStmt(command: CommandStmt): void {
+        switch (command.type) {
+            case CommandType.ENV:
+                this.printBindings();
+                break;
+            case CommandType.UNBIND:
+                delete this.bindings[command.argument];
+                break;
+        }
+    }
+
+    private printBindings() {
+        Object.entries(this.bindings).forEach(binding => {
+            logger.log(`${binding[0]}:\t${printAst(binding[1])}`);
         });
     }
 }

@@ -11,7 +11,13 @@ export class Lexer {
     private current: number = 0;
     private line: number = 1;
     private linestart: number = 0;
-    //TODO generalize this lexer to take in arbitrary token rules
+
+    private static keywords: { [key: string]: TokenType } = {
+        lambda: TokenType.LAMBDA,
+        env: TokenType.ENV,
+        unbind: TokenType.UNBIND,
+    };
+
     constructor(source: string) {
         this.source = source;
         sourcedata.setSource(source);
@@ -69,9 +75,8 @@ export class Lexer {
     private identifier() {
         while (this.isLowerAlphaNumeric(this.peek())) this.advance();
 
-        this.source.substring(this.start, this.current) === "lambda"
-            ? this.addToken(TokenType.LAMBDA)
-            : this.addToken(TokenType.IDENTIFIER);
+        const ident: string = this.source.substring(this.start, this.current);
+        this.addToken(ident in Lexer.keywords ? Lexer.keywords[ident] : TokenType.IDENTIFIER);
     }
 
     private match(expected: string): boolean {
