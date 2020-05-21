@@ -1,7 +1,7 @@
 {
-    "name": "lambdacalculus",
+    "name": "lambda",
     "version": "1.0.0",
-    "description": "Lambda calculus evaluator.",
+    "description": "Lambda calculus interpreter library and CLI.",
     "type": "commonjs",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -13,7 +13,7 @@
         "clean": "rm -rf ./dist"
     },
     "bin": {
-        "lambdacalc": "dist/cli.js"
+        "lambda": "dist/cli.js"
     },
     "repository": {
         "type": "git",
@@ -27,9 +27,9 @@
     "author": "Alec Minchington",
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/minchingtonak/lambdacalculus/issues"
+        "url": "https://github.com/minchingtonak/lambda/issues"
     },
-    "homepage": "https://github.com/minchingtonak/lambdacalculus#readme",
+    "homepage": "https://github.com/minchingtonak/lambda#readme",
     "devDependencies": {
         "@types/chai": "^4.2.11",
         "@types/mocha": "^7.0.2",
