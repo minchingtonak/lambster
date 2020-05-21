@@ -86,15 +86,27 @@ export class Parser {
     }
 
     private abstraction(): Term {
-        const ident: string = this.consume(
-            TokenType.IDENTIFIER,
-            "No identifier in abstraction definition."
-        ).lexeme;
+        let idents: string[] = [];
+        idents.push(
+            this.consume(
+                TokenType.IDENTIFIER,
+                "Expected at least one identifier in abstraction definition."
+            ).lexeme
+        );
+        while (this.peek().type === TokenType.IDENTIFIER) {
+            idents.push(this.peek().lexeme);
+            this.advance();
+        }
         this.consume(
             TokenType.DOT,
             `Expected dot after abstraction declaration, got '${this.peek().lexeme}'.`
         );
-        return new Abstraction(ident, this.term());
+        idents = idents.reverse();
+        let abs: Abstraction = new Abstraction(idents[0], this.term());
+        idents.slice(1).forEach(ident => {
+            abs = new Abstraction(ident, abs);
+        });
+        return abs;
     }
 
     private application(): Term {

@@ -14,7 +14,7 @@ term        → IDENTIFIER
             | abstraction
             | application
             | grouping ;
-abstraction      → LAMBDA IDENTIFIER "." expression ;
+abstraction      → LAMBDA IDENTIFIER+ "." expression ;
 application → expression expression ;
 grouping    → "(" expression ")" ;
 LAMBDA      → "L" | "λ" | "lambda" ;
@@ -25,7 +25,7 @@ IDENTIFIER  → [a-z0-9]+ ;
 
 term            → abstraction
                 | application ;
-abstraction     → LAMBDA IDENTIFIER "." term ;
+abstraction     → LAMBDA IDENTIFIER+ "." term ;
 application     → atom atom* ;
 atom            → "(" term ")"
                 | IDENTIFIER
