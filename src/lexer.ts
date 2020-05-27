@@ -1,9 +1,10 @@
 import { Token } from "./token";
 import { TokenType } from "./tokentype";
-import { reporter, LexError } from "./error";
-import sourcedata from "./sourcedata";
+import Logger, { LexError } from "./logger";
 
 export class Lexer {
+    private logger: Logger;
+
     private source: string;
     private tokens: Token[] = [];
 
@@ -18,12 +19,12 @@ export class Lexer {
         unbind: TokenType.UNBIND,
     };
 
-    constructor(source: string) {
+    constructor(source: string, logger: Logger) {
         this.source = source;
-        sourcedata.setSource(source);
+        this.logger = logger;
     }
 
-    scanTokens(): Token[] {
+    lexTokens(): Token[] {
         while (!this.isAtEnd()) {
             this.start = this.current;
             this.scanToken();
@@ -122,7 +123,7 @@ export class Lexer {
     }
 
     private error(character: string, message: string): LexError {
-        reporter.reportError(this.genToken(TokenType.ERROR, character), message);
+        this.logger.reportError(this.genToken(TokenType.ERROR, character), message);
         return new LexError();
     }
 }

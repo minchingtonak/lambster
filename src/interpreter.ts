@@ -4,7 +4,6 @@ import {
     Abstraction,
     Variable,
     Application,
-    TermVisitor,
     StmtVisitor,
     TermStmt,
     BindingStmt,
@@ -14,7 +13,10 @@ import {
 import { Reducer } from "./reducer";
 import { BindingResolver } from "./bindingresolver";
 import { printTerm } from "./termprinter";
-import logger from "./logger";
+import { InterpreterOptions } from "./types";
+import { Lexer } from "./lexer";
+import { Parser } from "./parser";
+import Logger from "./logger";
 
 export class Interpreter implements StmtVisitor<void> {
     private bindings: { [key: string]: Term } =
@@ -171,7 +173,7 @@ export class Interpreter implements StmtVisitor<void> {
                             new Variable("m"),
                             new Application(new Variable("plus"), new Variable("n"))
                         ),
-                        new Variable("0")
+                        new Variable("zero")
                     )
                 )
             ),
@@ -360,25 +362,40 @@ export class Interpreter implements StmtVisitor<void> {
         });
 
     private rename_free_vars: boolean;
-    private resolver: BindingResolver = new BindingResolver(this.bindings);
+    private logger: Logger;
+    private resolver: BindingResolver;
 
-    constructor(rename_free_vars: boolean) {
-        this.rename_free_vars = rename_free_vars;
+    constructor(options: InterpreterOptions) {
+        this.rename_free_vars = options.rename_free_vars as boolean;
+        this.logger = new Logger({
+            verbosity: options.verbosity,
+            output_stream: options.output_stream,
+        });
+        this.resolver = new BindingResolver(this.bindings, this.logger);
     }
 
-    interpret(stmts: Stmt[]) {
+    interpret(source: string) {
+        this.logger.setSource(source);
+        const stmts: Stmt[] = new Parser(
+            new Lexer(source, this.logger).lexTokens(),
+            this.logger
+        ).parse();
+
+        if (this.logger.hasError) return;
+
         stmts.forEach(stmt => {
             stmt.accept(this);
         });
     }
 
     visitTermStmt(term_stmt: TermStmt): void {
-        logger.vlog(`λ > ${printTerm(term_stmt.term)}`);
-        logger.log(
+        this.logger.vlog(`λ > ${printTerm(term_stmt.term)}`);
+        this.logger.log(
             `>>> ${printTerm(
-                new Reducer(this.rename_free_vars).reduceTerm(
-                    this.resolver.resolveTerm(term_stmt.term)
-                )
+                new Reducer({
+                    rename_free_vars: this.rename_free_vars,
+                    logger: this.logger,
+                }).reduceTerm(this.resolver.resolveTerm(term_stmt.term))
             )}\n`
         );
     }
@@ -396,9 +413,17 @@ export class Interpreter implements StmtVisitor<void> {
         }
     }
 
+    hadError(): boolean {
+        return this.logger.hasError;
+    }
+
+    clearError() {
+        this.logger.hasError = false;
+    }
+
     private printBindings() {
         Object.entries(this.bindings).forEach(binding => {
-            logger.log(`${binding[0]}:\t${printTerm(binding[1])}`);
+            this.logger.log(`${binding[0]}:\t${printTerm(binding[1])}`);
         });
     }
 }

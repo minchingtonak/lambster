@@ -1,14 +1,18 @@
 import { TermVisitor, Term, Abstraction, Application, Variable } from "./ast";
 import { cloneTerm } from "./termcloner";
 import { printTerm } from "./termprinter";
-import logger from "./logger";
+import { ReducerOptions } from "./types";
+import Logger from "./logger";
 
 export class Reducer implements TermVisitor<Term> {
+    private logger: Logger;
+    
     private rename_free_vars: boolean;
     private redex: Term;
 
-    constructor(rename_free_vars = false) {
-        this.rename_free_vars = rename_free_vars;
+    constructor(options: ReducerOptions) {
+        this.rename_free_vars = options.rename_free_vars as boolean;
+        this.logger = options.logger;
     }
 
     reduceTerm(term: Term): Term {
@@ -44,12 +48,12 @@ export class Reducer implements TermVisitor<Term> {
                 .map(v => v.getParentAbstraction())
         );
         conflicting_abs.forEach(abs => {
-            abs.alphaReduce(this.genNewName());
+            abs.alphaReduce(this.genNewName(), this.logger);
         });
-        if (conflicting_abs.size !== 0) logger.vlog(`α > ${printTerm(this.redex)}`);
+        if (conflicting_abs.size !== 0) this.logger.vlog(`α > ${printTerm(this.redex)}`);
 
         // Beta reduce x_normal into f_normal then reduce the result of that beta reduction to normal form
-        const beta_reduct: Term = f_normal.betaReduce(x_normal, application.parent);
+        const beta_reduct: Term = f_normal.betaReduce(x_normal, application.parent, this.logger);
         if (application.parent) {
             if (application.parent instanceof Abstraction) {
                 application.parent.body = beta_reduct;
@@ -63,14 +67,14 @@ export class Reducer implements TermVisitor<Term> {
         } else {
             this.redex = beta_reduct;
         }
-        logger.vlog(`β > ${printTerm(this.redex)}`);
+        this.logger.vlog(`β > ${printTerm(this.redex)}`);
         return this.reduce(beta_reduct);
     }
     visitVariable(variable: Variable): Term {
         // Rename free variable to unambiguous name if initialized with rename_free_vars = true
         if (this.rename_free_vars && !variable.free_renamed && variable.isFreeVar()) {
             const new_name: string = this.genNewFreeName();
-            logger.vlog(`ε > '${variable.name}' → '${new_name}'`);
+            this.logger.vlog(`ε > '${variable.name}' → '${new_name}'`);
             variable.renameFreeVar(new_name);
         }
         return variable;

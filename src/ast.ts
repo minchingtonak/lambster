@@ -1,6 +1,7 @@
 import logger from "./logger";
 import { cloneTerm } from "./termcloner";
 import { printTerm } from "./termprinter";
+import Logger from "./logger";
 
 export interface TermVisitor<T> {
     visitAbstraction(abstraction: Abstraction): T;
@@ -80,12 +81,12 @@ export class Abstraction extends Term {
         body.parent = this;
     }
 
-    alphaReduce(new_name: string) {
+    alphaReduce(new_name: string, logger: Logger) {
         logger.vvlog(`Alpha reducing '${printTerm(this)}' with name '${new_name}'`);
         this.rename(new_name, this);
     }
 
-    betaReduce(argument: Term, application_parent: Term): Term {
+    betaReduce(argument: Term, application_parent: Term, logger: Logger): Term {
         logger.vvlog(`Beta reducing '${printTerm(argument)}' into '${printTerm(this)}'`);
         const replacements: Variable[] = this.getBoundVars();
         if (replacements.length !== 0) {

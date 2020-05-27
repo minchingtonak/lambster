@@ -1,6 +1,5 @@
 import { Token } from "./token";
 import { TokenType } from "./tokentype";
-import { reporter, ParseError } from "./error";
 import {
     Term,
     Abstraction,
@@ -12,13 +11,17 @@ import {
     CommandType,
     TermStmt,
 } from "./ast";
+import Logger, { ParseError } from "./logger";
 
 export class Parser {
+    private logger: Logger;
+
     private tokens: Token[];
     private current: number = 0;
 
-    constructor(tokens: Token[]) {
+    constructor(tokens: Token[], logger: Logger) {
         this.tokens = tokens;
+        this.logger = logger;
     }
 
     parse(): Stmt[] {
@@ -197,7 +200,7 @@ export class Parser {
     }
 
     private error(token: Token, message: string): ParseError {
-        reporter.reportError(token, message);
+        this.logger.reportError(token, message);
         return new ParseError();
     }
 }
