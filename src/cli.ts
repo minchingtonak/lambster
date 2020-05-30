@@ -24,7 +24,7 @@ module LambdaCalculus {
             }
             runPrompt();
         } catch (e) {
-            console.log(e.message);
+            console.log(e);
             usage();
             process.exit(64);
         }
