@@ -427,6 +427,7 @@ export class Interpreter implements StmtVisitor<void> {
             rename_free_vars: this.rename_free_vars,
             logger: this.logger,
         }).reduceTerm(this.resolver.resolveTerm(term_stmt.term));
+        this.logger.vvlog();
         this.logger.log(`>>> ${printTerm(reduct)}`);
         const hash: number = hashTerm(reduct),
             s_hash = hashTermStructure(reduct);
@@ -436,7 +437,7 @@ export class Interpreter implements StmtVisitor<void> {
             this.logger.log(
                 `    ↳ structurally equivalent to: ${joinSet(this.structure_hashes[s_hash], ", ")}`
             );
-        if (!(hash in this.hashes) && !(s_hash in this.structure_hashes)) this.logger.log("");
+        if ((hash in this.hashes) || (s_hash in this.structure_hashes)) this.logger.log();
     }
     visitBindingStmt(binding: BindingStmt): void {
         this.bindings[binding.name] = binding.term;

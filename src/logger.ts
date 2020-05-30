@@ -25,15 +25,15 @@ class Logger {
         this.source = source.split("\n");
     }
 
-    log(message: string) {
+    log(...message: string[]) {
         this.print(message, Verbosity.NONE);
     }
 
-    vlog(message: string) {
+    vlog(...message: string[]) {
         this.print(message, Verbosity.LOW);
     }
 
-    vvlog(message: string) {
+    vvlog(...message: string[]) {
         this.print(message, Verbosity.HIGH);
     }
 
@@ -55,9 +55,9 @@ class Logger {
         if (verbose) this.verboseError(token);
     }
 
-    private print(message: string, target: Verbosity) {
+    private print(message: string[], target: Verbosity) {
         if (this.verbosity < target) return;
-        this.os.write(`${message}\n`);
+        this.os.write(`${message.join(' ')}\n`);
     }
 
     private verboseError(token: Token) {
