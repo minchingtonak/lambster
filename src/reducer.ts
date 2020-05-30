@@ -6,7 +6,7 @@ import Logger from "./logger";
 
 export class Reducer implements TermVisitor<Term> {
     private logger: Logger;
-    
+
     private rename_free_vars: boolean;
     private redex: Term;
 
@@ -47,13 +47,17 @@ export class Reducer implements TermVisitor<Term> {
                 .filter(v => conflicts.has(v.name))
                 .map(v => v.getParentAbstraction())
         );
+        if (conflicting_abs.size) this.logger.vvlog();
         conflicting_abs.forEach(abs => {
-            abs.alphaReduce(this.genNewName(), this.logger);
+            const new_name: string = this.genNewName();
+            this.logger.vvlog(`Alpha reducing '${printTerm(abs)}' with name '${new_name}'`);
+            abs.alphaReduce(new_name);
         });
         if (conflicting_abs.size !== 0) this.logger.vlog(`α > ${printTerm(this.redex)}`);
 
         // Beta reduce x_normal into f_normal then reduce the result of that beta reduction to normal form
-        const beta_reduct: Term = f_normal.betaReduce(x_normal, application.parent, this.logger);
+        this.logger.vvlog(`\nBeta reducing '${printTerm(x_normal)}' into '${printTerm(f_normal)}'`);
+        const beta_reduct: Term = f_normal.betaReduce(x_normal, application.parent);
         if (application.parent) {
             if (application.parent instanceof Abstraction) {
                 application.parent.body = beta_reduct;
@@ -74,6 +78,7 @@ export class Reducer implements TermVisitor<Term> {
         // Rename free variable to unambiguous name if initialized with rename_free_vars = true
         if (this.rename_free_vars && !variable.free_renamed && variable.isFreeVar()) {
             const new_name: string = this.genNewFreeName();
+            this.logger.vvlog(`\nRenaming free variable '${variable.name}' to '${new_name}'`)
             this.logger.vlog(`ε > '${variable.name}' → '${new_name}'`);
             variable.renameFreeVar(new_name);
         }
@@ -87,6 +92,6 @@ export class Reducer implements TermVisitor<Term> {
 
     private current_free_name_prefix: number = 0;
     private genNewFreeName(): string {
-        return `X'${this.current_free_name_prefix++}`;
+        return `X\`${this.current_free_name_prefix++}`;
     }
 }
