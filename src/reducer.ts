@@ -82,11 +82,11 @@ export class Reducer implements TermVisitor<Term> {
 
     private current_name_prefix: number = 0;
     private genNewName(): string {
-        return `x${this.current_name_prefix++}`;
+        return `X${this.current_name_prefix++}`;
     }
 
     private current_free_name_prefix: number = 0;
     private genNewFreeName(): string {
-        return `x'${this.current_free_name_prefix++}`;
+        return `X'${this.current_free_name_prefix++}`;
     }
 }
