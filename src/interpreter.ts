@@ -13,22 +13,55 @@ import {
 import { Reducer } from "./reducer";
 import { BindingResolver } from "./bindingresolver";
 import { printTerm } from "./termprinter";
+import { hashTerm, hashTermStructure } from "./termhasher";
 import { InterpreterOptions } from "./types";
 import { Lexer } from "./lexer";
 import { Parser } from "./parser";
 import Logger from "./logger";
 
+function joinSet<T>(set: Set<T>, separator: string) {
+    let joined: string = "";
+    set.forEach(val => {
+        joined += `${val}${separator}`;
+    });
+    return joined.substr(0, joined.length - separator.length);
+}
+
 export class Interpreter implements StmtVisitor<void> {
+    private hashes: { [key: number]: Set<string> } = {};
+    private structure_hashes: { [key: number]: Set<string> } = {};
+
+    private addHash(term: Term, name: string) {
+        const hash: number = hashTerm(term),
+            s_hash: number = hashTermStructure(term);
+        if (!(hash in this.hashes)) this.hashes[hash] = new Set<string>();
+        if (!(s_hash in this.structure_hashes)) this.structure_hashes[s_hash] = new Set<string>();
+        this.hashes[hash].add(name);
+        this.structure_hashes[s_hash].add(name);
+    }
+    private deleteHash(term: Term, name: string) {
+        const hash: number = hashTerm(term),
+            s_hash: number = hashTermStructure(term),
+            set: Set<string> = this.hashes[hash],
+            s_set: Set<string> = this.structure_hashes[s_hash];
+
+        set.delete(name);
+        s_set.delete(name);
+
+        // if (set.size === 0) delete this.hashes[hash];
+        // if (s_set.size === 0) delete this.structure_hashes[s_hash];
+    }
+
     private bindings: { [key: string]: Term } =
         // Process multikeys
         (dict => {
             Object.keys(dict).forEach(key => {
-                if (key.indexOf("|") !== -1) {
-                    key.split("|").forEach(subkey => {
-                        dict[subkey] = dict[key];
-                    });
-                    delete dict[key];
-                }
+                const subkeys: string[] = key.split("|");
+                subkeys.forEach(subkey => {
+                    dict[subkey] = dict[key];
+                    this.addHash(dict[key], subkey);
+                });
+                if (subkeys.length > 1) delete dict[key];
             });
             return dict;
         })({
@@ -390,17 +423,24 @@ export class Interpreter implements StmtVisitor<void> {
 
     visitTermStmt(term_stmt: TermStmt): void {
         this.logger.vlog(`λ > ${printTerm(term_stmt.term)}`);
-        this.logger.log(
-            `>>> ${printTerm(
-                new Reducer({
-                    rename_free_vars: this.rename_free_vars,
-                    logger: this.logger,
-                }).reduceTerm(this.resolver.resolveTerm(term_stmt.term))
-            )}\n`
-        );
+        const reduct: Term = new Reducer({
+            rename_free_vars: this.rename_free_vars,
+            logger: this.logger,
+        }).reduceTerm(this.resolver.resolveTerm(term_stmt.term));
+        this.logger.log(`>>> ${printTerm(reduct)}`);
+        const hash: number = hashTerm(reduct),
+            s_hash = hashTermStructure(reduct);
+        if (hash in this.hashes)
+            this.logger.log(`    ↳ equal to: ${joinSet(this.hashes[hash], ", ")}`);
+        if (s_hash in this.structure_hashes)
+            this.logger.log(
+                `    ↳ structurally equivalent to: ${joinSet(this.structure_hashes[s_hash], ", ")}`
+            );
+        if (!(hash in this.hashes) && !(s_hash in this.structure_hashes)) this.logger.log("");
     }
     visitBindingStmt(binding: BindingStmt): void {
         this.bindings[binding.name] = binding.term;
+        this.addHash(binding.term, binding.name);
     }
     visitCommandStmt(command: CommandStmt): void {
         switch (command.type) {
@@ -408,6 +448,7 @@ export class Interpreter implements StmtVisitor<void> {
                 this.printBindings();
                 break;
             case CommandType.UNBIND:
+                this.deleteHash(this.bindings[command.argument], command.argument);
                 delete this.bindings[command.argument];
                 break;
         }
