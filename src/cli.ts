@@ -13,10 +13,11 @@ module LambdaCalculus {
 
     export function main() {
         try {
-            const args: { [key: string]: string | Verbosity } = parseArgs();
+            const args = parseArgs();
             interpreter = new Interpreter({
                 verbosity: args.verbosity as Verbosity,
                 output_stream: process.stdout,
+                rename_free_vars: args["rename_free_vars"],
             });
             if ("filename" in args) {
                 runFile(args["filename"] as string);
@@ -30,8 +31,8 @@ module LambdaCalculus {
         }
     }
 
-    function parseArgs(): { [key: string]: string | Verbosity } {
-        const obj: { [key: string]: string | Verbosity } = {verbosity: Verbosity.NONE};
+    function parseArgs() {
+        const obj = { verbosity: Verbosity.NONE, rename_free_vars: false };
         process.argv.slice(2).forEach(arg => {
             if (arg.startsWith("-")) {
                 switch (arg.substr(1)) {
@@ -40,6 +41,9 @@ module LambdaCalculus {
                         break;
                     case "vv":
                         obj["verbosity"] = Verbosity.HIGH;
+                        break;
+                    case "r":
+                        obj["rename_free_vars"] = true;
                         break;
                     default:
                         throw new Error(`Failed to parse arguments: unexpected option '${arg}'`);
@@ -94,7 +98,7 @@ module LambdaCalculus {
     }
 
     function usage() {
-        console.log(`Usage: ${process.argv[1]} (-v|-vv)? [FILE]`);
+        console.log(`Usage: ${process.argv[1]} (-v|-vv)? (-r)? [FILE]`);
     }
 }
 
