@@ -13,7 +13,7 @@ import {
 import { Reducer } from "./reducer";
 import { BindingResolver } from "./bindingresolver";
 import { printTerm } from "./termprinter";
-import { hashTerm, hashTermStructure } from "./termhasher";
+import { hashTermStructure } from "./termhasher";
 import { InterpreterOptions } from "./types";
 import { Lexer } from "./lexer";
 import { Parser } from "./parser";
@@ -28,24 +28,17 @@ function joinSet<T>(set: Set<T>, separator: string) {
 }
 
 export class Interpreter implements StmtVisitor<void> {
-    private hashes: { [key: number]: Set<string> } = {};
     private structure_hashes: { [key: number]: Set<string> } = {};
 
     private addHash(term: Term, name: string) {
-        const hash: number = hashTerm(term),
-            s_hash: number = hashTermStructure(term);
-        if (!(hash in this.hashes)) this.hashes[hash] = new Set<string>();
+        const s_hash: number = hashTermStructure(term);
         if (!(s_hash in this.structure_hashes)) this.structure_hashes[s_hash] = new Set<string>();
-        this.hashes[hash].add(name);
         this.structure_hashes[s_hash].add(name);
     }
     private deleteHash(term: Term, name: string) {
-        const hash: number = hashTerm(term),
-            s_hash: number = hashTermStructure(term),
-            set: Set<string> = this.hashes[hash],
+        const s_hash: number = hashTermStructure(term),
             s_set: Set<string> = this.structure_hashes[s_hash];
 
-        set.delete(name);
         s_set.delete(name);
 
         // if (set.size === 0) delete this.hashes[hash];
@@ -217,12 +210,12 @@ export class Interpreter implements StmtVisitor<void> {
                     new Variable("true")
                 )
             ),
-            "0|zero": new Abstraction("f", new Abstraction("x", new Variable("x"))),
-            "1|one": new Abstraction(
+            zero: new Abstraction("f", new Abstraction("x", new Variable("x"))),
+            one: new Abstraction(
                 "f",
                 new Abstraction("x", new Application(new Variable("f"), new Variable("x")))
             ),
-            "2|two": new Abstraction(
+            two: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -232,7 +225,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "3|three": new Abstraction(
+            three: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -245,7 +238,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "4|four": new Abstraction(
+            four: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -261,7 +254,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "5|five": new Abstraction(
+            five: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -280,7 +273,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "6|six": new Abstraction(
+            six: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -302,7 +295,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "7|seven": new Abstraction(
+            seven: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -327,7 +320,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "8|eight": new Abstraction(
+            eight: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -358,7 +351,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "9|nine": new Abstraction(
+            nine: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -429,15 +422,11 @@ export class Interpreter implements StmtVisitor<void> {
         }).reduceTerm(this.resolver.resolveTerm(term_stmt.term));
         this.logger.vvlog();
         this.logger.log(`>>> ${printTerm(reduct)}`);
-        const hash: number = hashTerm(reduct),
-            s_hash = hashTermStructure(reduct);
-        if (hash in this.hashes)
-            this.logger.log(`    ↳ equal to: ${joinSet(this.hashes[hash], ", ")}`);
+        const s_hash: number = hashTermStructure(reduct);
         if (s_hash in this.structure_hashes)
             this.logger.log(
-                `    ↳ structurally equivalent to: ${joinSet(this.structure_hashes[s_hash], ", ")}`
+                `    ↳ equivalent to: ${joinSet(this.structure_hashes[s_hash], ", ")}\n`
             );
-        if ((hash in this.hashes) || (s_hash in this.structure_hashes)) this.logger.log();
     }
     visitBindingStmt(binding: BindingStmt): void {
         this.bindings[binding.name] = binding.term;
@@ -449,8 +438,7 @@ export class Interpreter implements StmtVisitor<void> {
                 this.printBindings();
                 break;
             case CommandType.UNBIND:
-                this.deleteHash(this.bindings[command.argument], command.argument);
-                delete this.bindings[command.argument];
+                this.deleteBinding(command.argument);
                 break;
         }
     }
@@ -467,5 +455,10 @@ export class Interpreter implements StmtVisitor<void> {
         Object.entries(this.bindings).forEach(binding => {
             this.logger.log(`${binding[0]}:\t${printTerm(binding[1])}`);
         });
+    }
+
+    private deleteBinding(binding: string) {
+        this.deleteHash(this.bindings[binding], binding);
+        delete this.bindings[binding];
     }
 }
