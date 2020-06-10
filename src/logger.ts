@@ -15,10 +15,10 @@ class Logger {
     private source: string[];
     private os: Writable;
 
-    constructor(options: LoggerOptions) {
-        this.verbosity = options.verbosity;
+    constructor(options?: LoggerOptions) {
+        this.verbosity = options.verbosity || Verbosity.NONE;
         if (options.source) this.source = options.source.split("\n");
-        this.os = options.output_stream;
+        this.os = options.output_stream || process.stdout;
     }
 
     setSource(source: string) {

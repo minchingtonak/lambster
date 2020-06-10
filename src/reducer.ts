@@ -1,7 +1,6 @@
 import { TermVisitor, Term, Abstraction, Application, Variable } from "./ast";
 import { cloneTerm } from "./termcloner";
 import { printTerm } from "./termprinter";
-import { ReducerOptions } from "./types";
 import Logger from "./logger";
 
 export class Reducer implements TermVisitor<Term> {
@@ -10,9 +9,9 @@ export class Reducer implements TermVisitor<Term> {
     private rename_free_vars: boolean;
     private redex: Term;
 
-    constructor(options: ReducerOptions) {
-        this.rename_free_vars = options.rename_free_vars as boolean;
-        this.logger = options.logger;
+    constructor(rename_free_vars: boolean, logger: Logger) {
+        this.rename_free_vars = rename_free_vars;
+        this.logger = logger;
     }
 
     reduceTerm(term: Term): Term {
@@ -78,7 +77,7 @@ export class Reducer implements TermVisitor<Term> {
         // Rename free variable to unambiguous name if initialized with rename_free_vars = true
         if (this.rename_free_vars && !variable.free_renamed && variable.isFreeVar()) {
             const new_name: string = this.genNewFreeName();
-            this.logger.vvlog(`\nRenaming free variable '${variable.name}' to '${new_name}'`)
+            this.logger.vvlog(`\nRenaming free variable '${variable.name}' to '${new_name}'`);
             this.logger.vlog(`ε > '${variable.name}' → '${new_name}'`);
             variable.renameFreeVar(new_name);
         }

@@ -17,7 +17,7 @@ import { hashTermStructure } from "./termhasher";
 import { InterpreterOptions } from "./types";
 import { Lexer } from "./lexer";
 import { Parser } from "./parser";
-import Logger from "./logger";
+import Logger, { Verbosity } from "./logger";
 
 function joinSet<T>(set: Set<T>, separator: string) {
     let joined: string = "";
@@ -391,11 +391,11 @@ export class Interpreter implements StmtVisitor<void> {
     private logger: Logger;
     private resolver: BindingResolver;
 
-    constructor(options: InterpreterOptions) {
-        this.rename_free_vars = options.rename_free_vars as boolean;
+    constructor(options?: InterpreterOptions) {
+        this.rename_free_vars = (options.rename_free_vars as boolean) || false;
         this.logger = new Logger({
-            verbosity: options.verbosity,
-            output_stream: options.output_stream,
+            verbosity: options.verbosity || Verbosity.NONE,
+            output_stream: options.output_stream || process.stdout,
         });
         this.resolver = new BindingResolver(this.bindings, this.logger);
     }
@@ -416,10 +416,9 @@ export class Interpreter implements StmtVisitor<void> {
 
     visitTermStmt(term_stmt: TermStmt): void {
         this.logger.vlog(`λ > ${printTerm(term_stmt.term)}`);
-        const reduct: Term = new Reducer({
-            rename_free_vars: this.rename_free_vars,
-            logger: this.logger,
-        }).reduceTerm(this.resolver.resolveTerm(term_stmt.term));
+        const reduct: Term = new Reducer(this.rename_free_vars, this.logger).reduceTerm(
+            this.resolver.resolveTerm(term_stmt.term)
+        );
         this.logger.vvlog();
         this.logger.log(`>>> ${printTerm(reduct)}`);
         const s_hash: number = hashTermStructure(reduct);
