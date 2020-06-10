@@ -64,6 +64,9 @@ export class Lexer {
                 ++this.line;
                 this.linestart = this.current;
                 break;
+            case "#":
+                this.comment();
+                break;
             default:
                 if (this.isLowerAlphaNumeric(c)) {
                     this.identifier();
@@ -78,6 +81,11 @@ export class Lexer {
 
         const ident: string = this.source.substring(this.start, this.current);
         this.addToken(ident in Lexer.keywords ? Lexer.keywords[ident] : TokenType.IDENTIFIER);
+    }
+
+    private comment() {
+        do this.advance();
+        while (!this.isAtEnd() && this.peekNext() !== "\n");
     }
 
     private match(expected: string): boolean {
