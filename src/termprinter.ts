@@ -16,7 +16,6 @@ class TermPrinter implements TermVisitor<string> {
     }
 }
 const printer: TermPrinter = new TermPrinter();
-function printTerm(term: Term): string {
+export function printTerm(term: Term): string {
     return printer.printTerm(term);
 }
-export { printTerm };

@@ -5,6 +5,7 @@
     "type": "commonjs",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "sideEffects": false,
     "scripts": {
         "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/cli.ts",
         "test": "mocha --require ts-node/register ./tests/**/*.test.ts",
@@ -22,7 +23,10 @@
     "keywords": [
         "lambda",
         "calculus",
-        "functional"
+        "functional",
+        "interpreter",
+        "programming",
+        "language"
     ],
     "author": "Alec Minchington",
     "license": "ISC",
@@ -33,15 +37,15 @@
     "devDependencies": {
         "@types/chai": "^4.2.11",
         "@types/mocha": "^7.0.2",
-        "@types/node": "^13.13.5",
+        "@types/node": "^13.13.9",
         "babel-core": "^6.26.3",
         "babel-register": "^6.26.0",
         "chai": "^4.2.0",
         "mocha": "^7.1.2",
+        "nodemon": "^2.0.3",
         "ts-node": "^8.10.1",
         "typescript": "^3.8.3",
-        "yarn": "^1.22.4",
-        "nodemon": "^2.0.3"
+        "yarn": "^1.22.4"
     },
     "prettier": {
         "printWidth": 100,

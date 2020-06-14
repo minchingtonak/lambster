@@ -1,46 +1,49 @@
 #!/usr/bin/env node
-import { Lexer } from "./lexer";
-import { Token } from "./token";
-import { Parser } from "./parser";
-import { Stmt } from "./ast";
-import { reporter } from "./error";
 import { Interpreter } from "./interpreter";
-import logger from "./logger";
+import { Verbosity } from "./logger";
 import * as readline from "readline";
 import * as fs from "fs";
 
-export module LambdaCalculus {
+module LambdaCalculus {
     const reader = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
     });
-    const interpreter: Interpreter = new Interpreter(false);
+    let interpreter: Interpreter;
 
     export function main() {
         try {
-            const args: { [key: string]: string } = parseArgs();
+            const args = parseArgs();
+            interpreter = new Interpreter({
+                verbosity: args.verbosity as Verbosity,
+                output_stream: process.stdout,
+                rename_free_vars: args["rename_free_vars"],
+            });
             if ("filename" in args) {
-                runFile(args["filename"]);
+                runFile(args["filename"] as string);
                 process.exit(0);
             }
             runPrompt();
         } catch (e) {
-            logger.log(e.message);
+            console.log(e);
             usage();
             process.exit(64);
         }
     }
 
-    function parseArgs(): { [key: string]: string } {
-        const obj: { [key: string]: string } = {};
+    function parseArgs() {
+        const obj = { verbosity: Verbosity.NONE, rename_free_vars: false };
         process.argv.slice(2).forEach(arg => {
             if (arg.startsWith("-")) {
                 switch (arg.substr(1)) {
                     case "v":
-                        logger.incrVerbosity(1);
+                        if (obj["verbosity"] < Verbosity.LOW) obj["verbosity"] = Verbosity.LOW;
                         break;
                     case "vv":
-                        logger.incrVerbosity(2);
+                        obj["verbosity"] = Verbosity.HIGH;
+                        break;
+                    case "r":
+                        obj["rename_free_vars"] = true;
                         break;
                     default:
                         throw new Error(`Failed to parse arguments: unexpected option '${arg}'`);
@@ -59,14 +62,14 @@ export module LambdaCalculus {
             const source: string = fs.readFileSync(filename, "utf-8");
             run(source);
             // https://www.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD%204.3-RELEASE&format=html
-            if (reporter.hasError) process.exit(65);
+            if (interpreter.hadError()) process.exit(65);
         } catch (e) {
             if (e.code === "ENOENT") {
-                logger.log(`Error: file '${filename}' not found.`);
+                console.log(`Error: file '${filename}' not found.`);
                 process.exit(66);
             } else {
-                logger.log("Uh oh. Something went wrong. Here's the error:");
-                logger.log(e);
+                console.log("Uh oh. Something went wrong. Here's the error:");
+                console.log(e);
             }
         }
     }
@@ -86,23 +89,16 @@ export module LambdaCalculus {
         });
         for (;;) {
             run(await waitForLine("λ> "));
-            reporter.hasError = false;
+            interpreter.clearError();
         }
     }
 
     function run(source: string) {
-        const lexer: Lexer = new Lexer(source),
-            tokens: Token[] = lexer.scanTokens(),
-            parser: Parser = new Parser(tokens),
-            stmts: Stmt[] = parser.parse();
-
-        if (reporter.hasError) return;
-
-        interpreter.interpret(stmts);
+        interpreter.interpret(source);
     }
 
     function usage() {
-        logger.log(`Usage: ${process.argv[2]} (-v|-vv)? [FILE]`);
+        console.log(`Usage: ${process.argv[1]} (-v|-vv)? (-r)? [FILE]`);
     }
 }
 

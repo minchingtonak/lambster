@@ -1,14 +1,17 @@
 import { TermVisitor, Term, Abstraction, Application, Variable } from "./ast";
 import { cloneTerm } from "./termcloner";
 import { printTerm } from "./termprinter";
-import logger from "./logger";
+import Logger from "./logger";
 
 export class Reducer implements TermVisitor<Term> {
+    private logger: Logger;
+
     private rename_free_vars: boolean;
     private redex: Term;
 
-    constructor(rename_free_vars = false) {
+    constructor(rename_free_vars: boolean, logger: Logger) {
         this.rename_free_vars = rename_free_vars;
+        this.logger = logger;
     }
 
     reduceTerm(term: Term): Term {
@@ -43,12 +46,16 @@ export class Reducer implements TermVisitor<Term> {
                 .filter(v => conflicts.has(v.name))
                 .map(v => v.getParentAbstraction())
         );
+        if (conflicting_abs.size) this.logger.vvlog();
         conflicting_abs.forEach(abs => {
-            abs.alphaReduce(this.genNewName());
+            const new_name: string = this.genNewName();
+            this.logger.vvlog(`Alpha reducing '${printTerm(abs)}' with name '${new_name}'`);
+            abs.alphaReduce(new_name);
         });
-        if (conflicting_abs.size !== 0) logger.vlog(`α > ${printTerm(this.redex)}`);
+        if (conflicting_abs.size !== 0) this.logger.vlog(`α > ${printTerm(this.redex)}`);
 
         // Beta reduce x_normal into f_normal then reduce the result of that beta reduction to normal form
+        this.logger.vvlog(`\nBeta reducing '${printTerm(x_normal)}' into '${printTerm(f_normal)}'`);
         const beta_reduct: Term = f_normal.betaReduce(x_normal, application.parent);
         if (application.parent) {
             if (application.parent instanceof Abstraction) {
@@ -63,14 +70,15 @@ export class Reducer implements TermVisitor<Term> {
         } else {
             this.redex = beta_reduct;
         }
-        logger.vlog(`β > ${printTerm(this.redex)}`);
+        this.logger.vlog(`β > ${printTerm(this.redex)}`);
         return this.reduce(beta_reduct);
     }
     visitVariable(variable: Variable): Term {
         // Rename free variable to unambiguous name if initialized with rename_free_vars = true
         if (this.rename_free_vars && !variable.free_renamed && variable.isFreeVar()) {
             const new_name: string = this.genNewFreeName();
-            logger.vlog(`ε > '${variable.name}' → '${new_name}'`);
+            this.logger.vvlog(`\nRenaming free variable '${variable.name}' to '${new_name}'`);
+            this.logger.vlog(`ε > '${variable.name}' → '${new_name}'`);
             variable.renameFreeVar(new_name);
         }
         return variable;
@@ -78,11 +86,11 @@ export class Reducer implements TermVisitor<Term> {
 
     private current_name_prefix: number = 0;
     private genNewName(): string {
-        return `x${this.current_name_prefix++}`;
+        return `X${this.current_name_prefix++}`;
     }
 
     private current_free_name_prefix: number = 0;
     private genNewFreeName(): string {
-        return `x'${this.current_free_name_prefix++}`;
+        return `X\`${this.current_free_name_prefix++}`;
     }
 }

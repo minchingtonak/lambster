@@ -4,7 +4,6 @@ import {
     Abstraction,
     Variable,
     Application,
-    TermVisitor,
     StmtVisitor,
     TermStmt,
     BindingStmt,
@@ -14,19 +13,48 @@ import {
 import { Reducer } from "./reducer";
 import { BindingResolver } from "./bindingresolver";
 import { printTerm } from "./termprinter";
-import logger from "./logger";
+import { hashTermStructure } from "./termhasher";
+import { InterpreterOptions } from "./types";
+import { Lexer } from "./lexer";
+import { Parser } from "./parser";
+import Logger, { Verbosity } from "./logger";
+
+function joinSet<T>(set: Set<T>, separator: string) {
+    let joined: string = "";
+    set.forEach(val => {
+        joined += `${val}${separator}`;
+    });
+    return joined.substr(0, joined.length - separator.length);
+}
 
 export class Interpreter implements StmtVisitor<void> {
+    private structure_hashes: { [key: number]: Set<string> } = {};
+
+    private addHash(term: Term, name: string) {
+        const s_hash: number = hashTermStructure(term);
+        if (!(s_hash in this.structure_hashes)) this.structure_hashes[s_hash] = new Set<string>();
+        this.structure_hashes[s_hash].add(name);
+    }
+    private deleteHash(term: Term, name: string) {
+        const s_hash: number = hashTermStructure(term),
+            s_set: Set<string> = this.structure_hashes[s_hash];
+
+        s_set.delete(name);
+
+        // if (set.size === 0) delete this.hashes[hash];
+        // if (s_set.size === 0) delete this.structure_hashes[s_hash];
+    }
+
     private bindings: { [key: string]: Term } =
         // Process multikeys
         (dict => {
             Object.keys(dict).forEach(key => {
-                if (key.indexOf("|") !== -1) {
-                    key.split("|").forEach(subkey => {
-                        dict[subkey] = dict[key];
-                    });
-                    delete dict[key];
-                }
+                const subkeys: string[] = key.split("|");
+                subkeys.forEach(subkey => {
+                    dict[subkey] = dict[key];
+                    this.addHash(dict[key], subkey);
+                });
+                if (subkeys.length > 1) delete dict[key];
             });
             return dict;
         })({
@@ -171,7 +199,7 @@ export class Interpreter implements StmtVisitor<void> {
                             new Variable("m"),
                             new Application(new Variable("plus"), new Variable("n"))
                         ),
-                        new Variable("0")
+                        new Variable("zero")
                     )
                 )
             ),
@@ -182,12 +210,12 @@ export class Interpreter implements StmtVisitor<void> {
                     new Variable("true")
                 )
             ),
-            "0|zero": new Abstraction("f", new Abstraction("x", new Variable("x"))),
-            "1|one": new Abstraction(
+            zero: new Abstraction("f", new Abstraction("x", new Variable("x"))),
+            one: new Abstraction(
                 "f",
                 new Abstraction("x", new Application(new Variable("f"), new Variable("x")))
             ),
-            "2|two": new Abstraction(
+            two: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -197,7 +225,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "3|three": new Abstraction(
+            three: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -210,7 +238,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "4|four": new Abstraction(
+            four: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -226,7 +254,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "5|five": new Abstraction(
+            five: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -245,7 +273,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "6|six": new Abstraction(
+            six: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -267,7 +295,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "7|seven": new Abstraction(
+            seven: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -292,7 +320,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "8|eight": new Abstraction(
+            eight: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -323,7 +351,7 @@ export class Interpreter implements StmtVisitor<void> {
                     )
                 )
             ),
-            "9|nine": new Abstraction(
+            nine: new Abstraction(
                 "f",
                 new Abstraction(
                     "x",
@@ -360,30 +388,48 @@ export class Interpreter implements StmtVisitor<void> {
         });
 
     private rename_free_vars: boolean;
-    private resolver: BindingResolver = new BindingResolver(this.bindings);
+    private logger: Logger;
+    private resolver: BindingResolver;
 
-    constructor(rename_free_vars: boolean) {
-        this.rename_free_vars = rename_free_vars;
+    constructor(options?: InterpreterOptions) {
+        this.rename_free_vars = (options.rename_free_vars as boolean) || false;
+        this.logger = new Logger({
+            verbosity: options.verbosity || Verbosity.NONE,
+            output_stream: options.output_stream || process.stdout,
+        });
+        this.resolver = new BindingResolver(this.bindings, this.logger);
     }
 
-    interpret(stmts: Stmt[]) {
+    interpret(source: string) {
+        this.logger.setSource(source);
+        const stmts: Stmt[] = new Parser(
+            new Lexer(source, this.logger).lexTokens(),
+            this.logger
+        ).parse();
+
+        if (this.logger.hasError) return;
+
         stmts.forEach(stmt => {
             stmt.accept(this);
         });
     }
 
     visitTermStmt(term_stmt: TermStmt): void {
-        logger.vlog(`λ > ${printTerm(term_stmt.term)}`);
-        logger.log(
-            `>>> ${printTerm(
-                new Reducer(this.rename_free_vars).reduceTerm(
-                    this.resolver.resolveTerm(term_stmt.term)
-                )
-            )}\n`
+        this.logger.vlog(`λ > ${printTerm(term_stmt.term)}`);
+        const reduct: Term = new Reducer(this.rename_free_vars, this.logger).reduceTerm(
+            this.resolver.resolveTerm(term_stmt.term)
         );
+        this.logger.vvlog();
+        this.logger.log(`>>> ${printTerm(reduct)}`);
+        const s_hash: number = hashTermStructure(reduct);
+        if (s_hash in this.structure_hashes)
+            this.logger.log(
+                `    ↳ equivalent to: ${joinSet(this.structure_hashes[s_hash], ", ")}\n`
+            );
     }
     visitBindingStmt(binding: BindingStmt): void {
         this.bindings[binding.name] = binding.term;
+        this.addHash(binding.term, binding.name);
     }
     visitCommandStmt(command: CommandStmt): void {
         switch (command.type) {
@@ -391,14 +437,27 @@ export class Interpreter implements StmtVisitor<void> {
                 this.printBindings();
                 break;
             case CommandType.UNBIND:
-                delete this.bindings[command.argument];
+                this.deleteBinding(command.argument);
                 break;
         }
     }
 
+    hadError(): boolean {
+        return this.logger.hasError;
+    }
+
+    clearError() {
+        this.logger.hasError = false;
+    }
+
     private printBindings() {
         Object.entries(this.bindings).forEach(binding => {
-            logger.log(`${binding[0]}:\t${printTerm(binding[1])}`);
+            this.logger.log(`${binding[0]}:\t${printTerm(binding[1])}`);
         });
+    }
+
+    private deleteBinding(binding: string) {
+        this.deleteHash(this.bindings[binding], binding);
+        delete this.bindings[binding];
     }
 }

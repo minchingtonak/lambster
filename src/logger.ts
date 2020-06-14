@@ -1,28 +1,79 @@
+import { LoggerOptions } from "./types";
+import { Token } from "./token";
+import { TokenType } from "./tokentype";
+import { Writable } from "stream";
+
+export enum Verbosity {
+    NONE = 0,
+    LOW,
+    HIGH,
+}
+
 class Logger {
-    private verbosity: number = 0;
-    setVerbosity(verbosity_in: number) {
-        this.verbosity = verbosity_in;
-    }
-    incrVerbosity(amount: number) {
-        this.verbosity += amount;
+    hasError: boolean = false;
+    private verbosity: Verbosity;
+    private source: string[];
+    private os: Writable;
+
+    constructor(options?: LoggerOptions) {
+        this.verbosity = options.verbosity || Verbosity.NONE;
+        if (options.source) this.source = options.source.split("\n");
+        this.os = options.output_stream || process.stdout;
     }
 
-    private print(message: string, target: number) {
+    setSource(source: string) {
+        this.source = source.split("\n");
+    }
+
+    log(...message: string[]) {
+        this.print(message, Verbosity.NONE);
+    }
+
+    vlog(...message: string[]) {
+        this.print(message, Verbosity.LOW);
+    }
+
+    vvlog(...message: string[]) {
+        this.print(message, Verbosity.HIGH);
+    }
+
+    reportError(token: Token, message: string, verbose = true) {
+        this.hasError = true;
+        this.log(
+            `Error at ${
+                token.type === TokenType.EOF
+                    ? "end of file"
+                    : "line " +
+                      token.line +
+                      " [" +
+                      token.start +
+                      ", " +
+                      (token.start + token.length) +
+                      "]"
+            }: ${message}`
+        );
+        if (verbose) this.verboseError(token);
+    }
+
+    private print(message: string[], target: Verbosity) {
         if (this.verbosity < target) return;
-        console.log(message);
+        this.os.write(`${message.join(' ')}\n`);
     }
 
-    log(message: string) {
-        this.print(message, 0);
-    }
-
-    vlog(message: string) {
-        this.print(message, 1);
-    }
-
-    vvlog(message: string) {
-        this.print(message, 2);
+    private verboseError(token: Token) {
+        let indicator: string = "";
+        for (let i = 1; i < token.start + token.length; ++i)
+            indicator += i >= token.start ? "^" : " ";
+        if (token.type === TokenType.EOF) indicator += "^";
+        this.log(`\t${this.source[token.line - 1]}\n\t${indicator}\n`);
     }
 }
 
-export default new Logger();
+export class LexError {
+    static type: string = "lexerror";
+}
+export class ParseError {
+    static type: string = "parseerror";
+}
+
+export default Logger;
