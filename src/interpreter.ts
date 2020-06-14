@@ -401,6 +401,7 @@ export class Interpreter implements StmtVisitor<void> {
     }
 
     interpret(source: string) {
+        this.logger.hasError = false;
         this.logger.setSource(source);
         const stmts: Stmt[] = new Parser(
             new Lexer(source, this.logger).lexTokens(),
@@ -444,10 +445,6 @@ export class Interpreter implements StmtVisitor<void> {
 
     hadError(): boolean {
         return this.logger.hasError;
-    }
-
-    clearError() {
-        this.logger.hasError = false;
     }
 
     private printBindings() {

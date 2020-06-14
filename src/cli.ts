@@ -87,10 +87,7 @@ module LambdaCalculus {
             console.log("\nGoodbye.");
             process.exit(0);
         });
-        for (;;) {
-            run(await waitForLine("λ> "));
-            interpreter.clearError();
-        }
+        for (;;) run(await waitForLine("λ> "));
     }
 
     function run(source: string) {
