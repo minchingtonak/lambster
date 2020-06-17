@@ -5,6 +5,7 @@
     "type": "commonjs",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "module": "dist/index.js",
     "sideEffects": false,
     "scripts": {
         "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/cli.ts",
@@ -47,6 +48,7 @@
         "typescript": "^3.8.3",
         "yarn": "^1.22.4"
     },
+    "dependencies": {},
     "prettier": {
         "printWidth": 100,
         "tabWidth": 4,
@@ -55,6 +57,5 @@
         "trailingComma": "es5",
         "bracketSpacing": true,
         "arrowParens": "avoid"
-    },
-    "dependencies": {}
+    }
 }
