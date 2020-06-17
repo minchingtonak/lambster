@@ -29,7 +29,7 @@
         "language"
     ],
     "author": "Alec Minchington",
-    "license": "ISC",
+    "license": "MIT",
     "bugs": {
         "url": "https://github.com/minchingtonak/lambda/issues"
     },
