@@ -2,8 +2,8 @@
 
 program     → ( stmt )* EOF ;
 
-stmt        → binding
-            | command
+stmt        → bindingStmt
+            | commandStmt
             | termStmt
             | "\n" ;
 bindingStmt → IDENTIFIER "=" expression "\n" ;
