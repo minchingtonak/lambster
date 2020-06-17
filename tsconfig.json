@@ -1,9 +1,10 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2015",
-    "declaration": true,
-    "outDir": "./dist"
-  },
-  "include": ["src/**/*"]
+    "compilerOptions": {
+        "module": "CommonJS",
+        "target": "ES2020",
+        "declaration": true,
+        "outDir": "./dist"
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "**/*.spec.ts"]
 }
