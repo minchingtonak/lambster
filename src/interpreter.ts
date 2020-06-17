@@ -456,6 +456,9 @@ export class Interpreter implements StmtVisitor<void> {
             case CommandType.UNBIND:
                 this.deleteBinding(command.argument);
                 break;
+            case CommandType.HELP:
+                this.printHelp();
+                break;
         }
     }
 
@@ -472,5 +475,39 @@ export class Interpreter implements StmtVisitor<void> {
     private deleteBinding(binding: string) {
         this.deleteHash(this.bindings[binding], binding);
         delete this.bindings[binding];
+    }
+
+    private printHelp() {
+        [
+            "~= Commands =~",
+            "help:\t\t print this help message",
+            "env:\t\t prints all variables currently bound in the environment (try this to see the builtin bindings)",
+            "unbind <name>:\t removes the binding with <name> from the environment",
+            "\n",
+            "~= Output =~",
+            "λ>\t prompt",
+            "λ >\t unambiguous, parsed representation of the given term",
+            "α >\t indicates that an alpha reduction (renaming) was performed",
+            "β >\t indicates that a beta reduction (substitution) was performed",
+            "ε >\t indicates that a free variable has been renamed to an unambiguous name",
+            "δ >\t indicates that a variable has been expanded to its binding in the environment",
+            "Δ >\t shows a term after all its bound variables have been resolved to their bindings",
+            "\n",
+            "~= Syntax =~",
+            "Lambda calculus terms follow this grammar:",
+            "\tterm\t\t → abstraction | application | variable",
+            "\tabstraction\t → (lambda | L | λ) IDENTIFIER+ . term",
+            "\tapplication\t → term term",
+            "\tvariable\t → IDENTIFIER",
+            "\tIDENTIFIER\t → [a-z0-9]+",
+            "",
+            "Examples:",
+            "\t(Lx. x x) y",
+            "\t(Lx y. y x) lambda f. f z",
+            "\tduplicate = La.a a",
+            "\thello world",
+        ].forEach(line => {
+            this.logger.log(line);
+        });
     }
 }

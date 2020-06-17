@@ -43,6 +43,7 @@ export class BindingStmt {
 export enum CommandType {
     ENV,
     UNBIND,
+    HELP
 }
 
 export class CommandStmt {

@@ -47,6 +47,7 @@ export class Parser {
             if (this.check(TokenType.IDENTIFIER) && this.checkNext(TokenType.EQUALS))
                 return this.bindingStmt();
             else if (this.match(TokenType.ENV)) return this.envStmt();
+            else if (this.match(TokenType.HELP)) return this.helpStmt();
             else if (this.match(TokenType.UNBIND)) return this.unbindStmt();
             return this.termStmt();
         } catch (p) {
@@ -67,6 +68,11 @@ export class Parser {
     private envStmt(): CommandStmt {
         this.consume(TokenType.NEWLINE, "Expected newline after env command.");
         return new CommandStmt(CommandType.ENV);
+    }
+
+    private helpStmt(): CommandStmt {
+        this.consume(TokenType.NEWLINE, "Expected newline after help command.");
+        return new CommandStmt(CommandType.HELP);
     }
 
     private unbindStmt(): CommandStmt {

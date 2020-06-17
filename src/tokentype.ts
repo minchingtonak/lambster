@@ -4,6 +4,7 @@ export enum TokenType {
     LAMBDA,
     ENV,
     UNBIND,
+    HELP,
     DOT,
     IDENTIFIER,
     EQUALS,

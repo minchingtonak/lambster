@@ -1,4 +1,4 @@
-import Logger, { Verbosity } from "./logger";
+import { Verbosity } from "./logger";
 import { Writable } from "stream";
 
 export interface InterpreterOptions {

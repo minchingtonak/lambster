@@ -17,6 +17,7 @@ export class Lexer {
         lambda: TokenType.LAMBDA,
         env: TokenType.ENV,
         unbind: TokenType.UNBIND,
+        help: TokenType.HELP
     };
 
     constructor(source: string, logger: Logger) {
