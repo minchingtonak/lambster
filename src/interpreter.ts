@@ -392,17 +392,33 @@ export class Interpreter implements StmtVisitor<void> {
     private resolver: BindingResolver;
 
     constructor(options?: InterpreterOptions) {
-        this.rename_free_vars = (options.rename_free_vars as boolean) || false;
-        this.logger = new Logger({
-            verbosity: options.verbosity || Verbosity.NONE,
-            output_stream: options.output_stream || process.stdout,
-        });
-        this.resolver = new BindingResolver(this.bindings, this.logger);
+        this.setOptions(options);
+    }
+
+    setOptions(options?: InterpreterOptions) {
+        if (options.rename_free_vars === undefined) {
+            this.rename_free_vars = this.rename_free_vars || false;
+        } else {
+            this.rename_free_vars = options.rename_free_vars;
+        }
+
+        if (!this.logger) {
+            this.logger = new Logger({
+                verbosity: options.verbosity || Verbosity.NONE,
+                output_stream: options.output_stream || process.stdout,
+            });
+            this.resolver = new BindingResolver(this.bindings, this.logger);
+        } else {
+            this.logger.setOptions({
+                output_stream: options.output_stream,
+                verbosity: options.verbosity,
+            });
+        }
     }
 
     interpret(source: string) {
         this.logger.hasError = false;
-        this.logger.setSource(source);
+        this.logger.setOptions({ source: source });
         const stmts: Stmt[] = new Parser(
             new Lexer(source, this.logger).lexTokens(),
             this.logger

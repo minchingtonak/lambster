@@ -16,13 +16,23 @@ class Logger {
     private os: Writable;
 
     constructor(options?: LoggerOptions) {
-        this.verbosity = options.verbosity || Verbosity.NONE;
-        if (options.source) this.source = options.source.split("\n");
-        this.os = options.output_stream || process.stdout;
+        this.setOptions(options);
     }
 
-    setSource(source: string) {
-        this.source = source.split("\n");
+    setOptions(options?: LoggerOptions) {
+        if (options.verbosity === undefined) {
+            this.verbosity = this.verbosity || Verbosity.NONE;
+        } else {
+            this.verbosity = options.verbosity;
+        }
+
+        if (options.source) this.source = options.source.split("\n");
+
+        if (options.output_stream === undefined) {
+            this.os = this.os || process.stdout;
+        } else {
+            this.os = options.output_stream;
+        }
     }
 
     log(...message: string[]) {
@@ -57,7 +67,7 @@ class Logger {
 
     private print(message: string[], target: Verbosity) {
         if (this.verbosity < target) return;
-        this.os.write(`${message.join(' ')}\n`);
+        this.os.write(`${message.join(" ")}\n`);
     }
 
     private verboseError(token: Token) {
