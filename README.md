@@ -118,18 +118,18 @@
 
 ## Installation
 
-`lambda` is available on npm! Simply install the package:
+`lambster` is available on npm! Simply install the package:
 
 ```
-npm i lambda
+npm i lambster
 ```
 
 ## Usage
 
-After `lambda` is installed, import and use the interpreter:
+After `lambster` is installed, import and use the interpreter:
 
 ```js
-import { Interpreter, Verbosity, InterpreterOptions } from "lambda";
+import { Interpreter, Verbosity, InterpreterOptions } from "lambster";
 
 const interpreter: Interpreter = new Interpreter();
 
@@ -143,7 +143,7 @@ The interpreter can also be passed an [`InterpreterOptions`](#interface-Interpre
 NodeJS's `Writable` stream interface is used to write output, allowing for custom output handling.
 
 ```js
-import { Interpreter, Verbosity, InterpreterOptions } from "lambda";
+import { Interpreter, Verbosity, InterpreterOptions } from "lambster";
 import { Writable } from "stream";
 
 let output: string = "";
