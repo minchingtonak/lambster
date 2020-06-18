@@ -20,19 +20,19 @@ class Logger {
     }
 
     setOptions(options?: LoggerOptions) {
-        if (options.verbosity === undefined) {
-            this.verbosity = this.verbosity || Verbosity.NONE;
-        } else {
-            this.verbosity = options.verbosity;
-        }
+        this.verbosity = options
+            ? options.verbosity !== undefined
+                ? options.verbosity
+                : this.verbosity
+            : this.verbosity || Verbosity.NONE;
 
-        if (options.source) this.source = options.source.split("\n");
+        this.os = options
+            ? options.output_stream !== undefined
+                ? options.output_stream
+                : this.os
+            : this.os || process.stdout;
 
-        if (options.output_stream === undefined) {
-            this.os = this.os || process.stdout;
-        } else {
-            this.os = options.output_stream;
-        }
+        if (options && options.source) this.source = options.source.split("\n");
     }
 
     log(...message: string[]) {

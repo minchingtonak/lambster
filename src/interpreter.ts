@@ -396,22 +396,22 @@ export class Interpreter implements StmtVisitor<void> {
     }
 
     setOptions(options?: InterpreterOptions) {
-        if (options.rename_free_vars === undefined) {
-            this.rename_free_vars = this.rename_free_vars || false;
-        } else {
-            this.rename_free_vars = options.rename_free_vars;
-        }
+        this.rename_free_vars = options
+            ? options.rename_free_vars !== undefined
+                ? options.rename_free_vars
+                : this.rename_free_vars
+            : this.rename_free_vars || false;
 
         if (!this.logger) {
             this.logger = new Logger({
-                verbosity: options.verbosity || Verbosity.NONE,
-                output_stream: options.output_stream || process.stdout,
+                verbosity: (options ? options.verbosity : undefined) || Verbosity.NONE,
+                output_stream: (options ? options.output_stream : undefined) || process.stdout,
             });
             this.resolver = new BindingResolver(this.bindings, this.logger);
         } else {
             this.logger.setOptions({
-                output_stream: options.output_stream,
-                verbosity: options.verbosity,
+                output_stream: options ? options.output_stream : undefined,
+                verbosity: options ? options.verbosity : undefined,
             });
         }
     }
