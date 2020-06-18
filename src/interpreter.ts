@@ -441,7 +441,7 @@ export class Interpreter implements StmtVisitor<void> {
     }
     visitBindingStmt(binding: BindingStmt): void {
         const reduct: Term = this.evalute(binding.term);
-        this.bindings[binding.name] = reduct
+        this.bindings[binding.name] = reduct;
         this.addHash(reduct, binding.name);
     }
     visitCommandStmt(command: CommandStmt): void {
@@ -498,6 +498,28 @@ export class Interpreter implements StmtVisitor<void> {
             "ε >\t indicates that a free variable has been renamed to an unambiguous name",
             "δ >\t indicates that a variable has been expanded to its binding in the environment",
             "Δ >\t shows a term after all its bound variables have been resolved to their bindings",
+            "",
+            "Example:",
+            "λ> b = Lc.c",
+            "λ > (λc. c)",
+            ">>> (λc. c)",
+            "λ> z = b",
+            "λ > b",
+            "    δ > expanded 'b' into '(λc. c)'",
+            "Δ > (λc. c)",
+            ">>> (λc. c)",
+            "λ> (Lx y. x y z)(Ly. (Lx.x y) a y) b",
+            "λ > (((λx. (λy. ((x y) z))) (λy. (((λx. (x y)) a) y))) b)",
+            "    δ > expanded 'z' into '(λc. c)'",
+            "    δ > expanded 'b' into '(λc. c)'",
+            "Δ > (((λx. (λy. ((x y) (λc. c)))) (λy. (((λx. (x y)) a) y))) (λc. c))",
+            "β > (((λx. (λy. ((x y) (λc. c)))) (λy. ((a y) y))) (λc. c))",
+            "α > (((λx. (λy. ((x y) (λc. c)))) (λX0. ((a X0) X0))) (λc. c))",
+            "β > ((λy. (((λX0. ((a X0) X0)) y) (λc. c))) (λc. c))",
+            "β > ((λy. (((a y) y) (λc. c))) (λc. c))",
+            "α > ((λy. (((a y) y) (λc. c))) (λX1. X1))",
+            "β > (((a (λX1. X1)) (λX1. X1)) (λc. c))",
+            ">>> (((a (λX1. X1)) (λX1. X1)) (λc. c))",
             "\n",
             "~= Syntax =~",
             "Lambda calculus terms follow this grammar:",
@@ -506,6 +528,9 @@ export class Interpreter implements StmtVisitor<void> {
             "\tapplication\t → term term",
             "\tvariable\t → IDENTIFIER",
             "\tIDENTIFIER\t → [a-z0-9]+",
+            "",
+            "Application is left-associative.",
+            "Abstraction extends as far to the right as possible.",
             "",
             "Examples:",
             "\t(Lx. x x) y",
