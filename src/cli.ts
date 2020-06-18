@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Interpreter } from "./interpreter";
 import { Verbosity } from "./logger";
-import { version } from "../package.json";
+import { name, version } from "../package.json";
 import * as readline from "readline";
 import * as fs from "fs";
 
@@ -97,7 +97,7 @@ module LambdaCalculus {
             process.exit(0);
         });
         console.log(
-            `lambda: A lambda calculus interpreter\nversion ${version} -- type 'help' for more information`
+            `${name}: A lambda calculus interpreter\nversion ${version} -- type 'help' for more information`
         );
         for (;;) run(await waitForLine("λ> "));
     }

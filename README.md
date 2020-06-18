@@ -1,4 +1,4 @@
-# lambda
+# lambster
 
 ### A lambda calculus interpreter written in TypeScript, packaged for npm.
 

@@ -1,5 +1,5 @@
 {
-    "name": "lambda",
+    "name": "lambster",
     "version": "1.0.0",
     "description": "Lambda calculus interpreter library and CLI.",
     "type": "commonjs",
@@ -15,11 +15,11 @@
         "clean": "rm -rf ./dist"
     },
     "bin": {
-        "lambda": "dist/src/cli.js"
+        "lambster": "dist/src/cli.js"
     },
     "repository": {
         "type": "git",
-        "url": "git+ssh://git@github.com/minchingtonak/lambdacalculus.git"
+        "url": "git+ssh://git@github.com/minchingtonak/lambda.git"
     },
     "keywords": [
         "lambda",
