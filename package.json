@@ -1,6 +1,6 @@
 {
     "name": "lambster",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Lambda calculus interpreter library and CLI.",
     "type": "commonjs",
     "main": "dist/src/index.js",
