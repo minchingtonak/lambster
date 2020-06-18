@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Interpreter } from "./interpreter";
 import { Verbosity } from "./logger";
+import { version } from "../package.json";
 import * as readline from "readline";
 import * as fs from "fs";
 
@@ -14,6 +15,10 @@ module LambdaCalculus {
     export function main() {
         try {
             const args = parseArgs();
+            if ("help" in args) {
+                usage();
+                process.exit(0);
+            }
             interpreter = new Interpreter({
                 verbosity: args.verbosity as Verbosity,
                 output_stream: process.stdout,
@@ -25,7 +30,7 @@ module LambdaCalculus {
             }
             runPrompt();
         } catch (e) {
-            console.log(e);
+            console.log(e.message);
             usage();
             process.exit(64);
         }
@@ -44,6 +49,10 @@ module LambdaCalculus {
                         break;
                     case "r":
                         obj["rename_free_vars"] = true;
+                        break;
+                    case "-help":
+                    case "h":
+                        obj["help"] = true;
                         break;
                     default:
                         throw new Error(`Failed to parse arguments: unexpected option '${arg}'`);
@@ -87,6 +96,9 @@ module LambdaCalculus {
             console.log("\nGoodbye.");
             process.exit(0);
         });
+        console.log(
+            `lambda: A lambda calculus interpreter\nversion ${version} -- type 'help' for more information`
+        );
         for (;;) run(await waitForLine("λ> "));
     }
 
@@ -95,7 +107,7 @@ module LambdaCalculus {
     }
 
     function usage() {
-        console.log(`Usage: ${process.argv[1]} (-v|-vv)? (-r)? [FILE]`);
+        console.log(`Usage: ${process.argv[1]} (-v|-vv)? (-r)? (-h|--help)? [FILE]`);
     }
 }
 
