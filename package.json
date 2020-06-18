@@ -19,7 +19,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+ssh://git@github.com/minchingtonak/lambda.git"
+        "url": "git+ssh://git@github.com/minchingtonak/lambster.git"
     },
     "keywords": [
         "lambda",
@@ -32,9 +32,9 @@
     "author": "Alec Minchington",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/minchingtonak/lambda/issues"
+        "url": "https://github.com/minchingtonak/lambster/issues"
     },
-    "homepage": "https://github.com/minchingtonak/lambda#readme",
+    "homepage": "https://github.com/minchingtonak/lambster#readme",
     "devDependencies": {
         "@types/chai": "^4.2.11",
         "@types/mocha": "^7.0.2",
