@@ -1,8 +1,6 @@
 # lambda
 
-## A lambda calculus interpreter written in TypeScript, packaged for npm.
-
----
+### A lambda calculus interpreter written in TypeScript, packaged for npm.
 
 ## Features
 
@@ -49,6 +47,7 @@
 -   Simple variable system with useful predefined lambda calculus terms
     ```
     λ> duplicate = Lx.x x
+    >>> (λx. (x x))
     λ> duplicate z
     >>> (z z)
     ```
@@ -90,6 +89,7 @@
     >>> y
     ```
 -   Clear and robust error printing
+
     ```
     λ> (xx
     Error at line 1 [4, 5]: Expected ')' to close expression.
@@ -138,14 +138,15 @@ interpreter.interpret("(Ly. y) z");
 // >>> z
 ```
 
-The interpreter can also be passed an [`InterpreterOptions`](#`interface-InterpreterOptions`) to control output parameters.
+The interpreter can also be passed an [`InterpreterOptions`](#interface-InterpreterOptions) to control output parameters.
 
 NodeJS's `Writable` stream interface is used to write output, allowing for custom output handling.
+
 ```js
 import { Interpreter, Verbosity, InterpreterOptions } from "lambda";
 import { Writable } from "stream";
 
-let output: string = '';
+let output: string = "";
 
 const interpreter: Interpreter = new Interpreter({
     verbosity: Verbosity.LOW,
@@ -170,36 +171,41 @@ console.log(output);
 
 ## API Reference
 
-### `class Interpreter`:
-- `constructor(options?: InterpreterOptions)`
-    - Create an instance of an `Interpreter`, optionally with the given options.
-    - If options are not provided, interpreter parameters are given these default values:
+### class Interpreter:
+
+-   `constructor(options?: InterpreterOptions)`
+
+    -   Create an instance of an `Interpreter`, optionally with the given options.
+    -   If options are not provided, interpreter parameters are given these default values:
         -   verbosity: `Verbosity.NONE` (result only)
         -   rename_free_vars: `false`
         -   output_stream: `process.stdout`
 
-- `interpret(source: string)`
-    - Interpret the given string and write the output to the provided `Writable`
+-   `interpret(source: string)`
+    -   Interpret the given string and write the output to the provided `Writable`
 
-### `interface InterpreterOptions`
-- `verbosity?: Verbosity`
-    - Optional Verbosity level for the interpreter
-- `output_stream?: Writable`
-    - Optional `Writable` that the interpreter will write its output to
-- `rename_free_vars?: boolean`
-    - Optional boolean that controls whether the interpreter will rename free variables to unambiguous names
+### interface InterpreterOptions
 
-### `enum Verbosity`
-- `NONE`
-    - Indicates the least amount of verbosity to the interpreter. Only the result of the reduction will be logged.
-- `LOW`
-    - Indicates that the interpreter will log the result and type of each intermediate reduction while reducing a given term.
-- `HIGH`
-    - Indicates that the interpreter will log a plain English explanation along with each intermediate reduction while reducing a given term.
+-   `verbosity?: Verbosity`
+    -   Optional Verbosity level for the interpreter
+-   `output_stream?: Writable`
+    -   Optional `Writable` that the interpreter will write its output to
+-   `rename_free_vars?: boolean`
+    -   Optional boolean that controls whether the interpreter will rename free variables to unambiguous names
+
+### enum Verbosity
+
+-   `NONE`
+    -   Indicates the least amount of verbosity to the interpreter. Only the result of the reduction will be logged.
+-   `LOW`
+    -   Indicates that the interpreter will log the result and type of each intermediate reduction while reducing a given term.
+-   `HIGH`
+    -   Indicates that the interpreter will log a plain English explanation along with each intermediate reduction while reducing a given term.
 
 ## Grammar
 
 For all you PL nerds out there, the interpreter recognizes this grammar:
+
 ```
 program     → ( stmt )* EOF ;
 
