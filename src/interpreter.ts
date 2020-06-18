@@ -432,12 +432,7 @@ export class Interpreter implements StmtVisitor<void> {
     }
 
     visitTermStmt(term_stmt: TermStmt): void {
-        this.logger.vlog(`λ > ${printTerm(term_stmt.term)}`);
-        const reduct: Term = new Reducer(this.rename_free_vars, this.logger).reduceTerm(
-            this.resolver.resolveTerm(term_stmt.term)
-        );
-        this.logger.vvlog();
-        this.logger.log(`>>> ${printTerm(reduct)}`);
+        const reduct: Term = this.evalute(term_stmt.term);
         const s_hash: number = hashTermStructure(reduct);
         if (s_hash in this.structure_hashes)
             this.logger.log(
@@ -445,8 +440,9 @@ export class Interpreter implements StmtVisitor<void> {
             );
     }
     visitBindingStmt(binding: BindingStmt): void {
-        this.bindings[binding.name] = binding.term;
-        this.addHash(binding.term, binding.name);
+        const reduct: Term = this.evalute(binding.term);
+        this.bindings[binding.name] = reduct
+        this.addHash(reduct, binding.name);
     }
     visitCommandStmt(command: CommandStmt): void {
         switch (command.type) {
@@ -464,6 +460,16 @@ export class Interpreter implements StmtVisitor<void> {
 
     hadError(): boolean {
         return this.logger.hasError;
+    }
+
+    private evalute(term: Term): Term {
+        this.logger.vlog(`λ > ${printTerm(term)}`);
+        const reduct: Term = new Reducer(this.rename_free_vars, this.logger).reduceTerm(
+            this.resolver.resolveTerm(term)
+        );
+        this.logger.vvlog();
+        this.logger.log(`>>> ${printTerm(reduct)}`);
+        return reduct;
     }
 
     private printBindings() {
