@@ -2,12 +2,15 @@ import * as chai from "chai";
 import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";
 import { Application, Abstraction, Variable, Term } from "../src/ast";
-
+import { logger } from "./util";
 const expect = chai.expect;
 
 describe("AST operation tests", () => {
     it("Test getBoundVars 1", () => {
-        const tree: Term = new Parser(new Lexer("(Lx.x)(Ly.y)").scanTokens()).parseTerm();
+        const tree: Term = new Parser(
+            new Lexer("(Lx.x)(Ly.y)", logger).lexTokens(),
+            logger
+        ).parseTerm();
 
         const bound: Variable[] = ((tree as Application).func as Abstraction).getBoundVars();
 
@@ -15,7 +18,10 @@ describe("AST operation tests", () => {
     });
 
     it("Test getBoundVars 2", () => {
-        const tree: Term = new Parser(new Lexer("(Lx. Lx. x y y)").scanTokens()).parseTerm();
+        const tree: Term = new Parser(
+            new Lexer("(Lx. Lx. x y y)", logger).lexTokens(),
+            logger
+        ).parseTerm();
 
         const bound: Variable[] = (tree as Abstraction).getBoundVars();
 
@@ -27,7 +33,10 @@ describe("AST operation tests", () => {
     });
 
     it("Test getBoundNames 1", () => {
-        const tree: Term = new Parser(new Lexer("(Lx. Lx. x y y)").scanTokens()).parseTerm();
+        const tree: Term = new Parser(
+            new Lexer("(Lx. Lx. x y y)", logger).lexTokens(),
+            logger
+        ).parseTerm();
 
         const bound: Set<string> = (tree as Abstraction).getBoundVarNames();
 

@@ -4,37 +4,46 @@ import { printTerm } from "../src/termprinter";
 import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";
 import { Application, Abstraction, Variable, Term } from "../src/ast";
+import { logger } from "./util";
 
 const expect = chai.expect;
 
 describe("Parser tests", () => {
     it("Basic parse test", () => {
-        expect(printTerm(new Parser(new Lexer("(Lx.x)(Ly.y)").scanTokens()).parseTerm())).to.equal(
-            "((λx. x) (λy. y))"
-        );
+        expect(
+            printTerm(new Parser(new Lexer("(Lx.x)(Ly.y)", logger).lexTokens(), logger).parseTerm())
+        ).to.equal("((λx. x) (λy. y))");
     });
 
     it("Parse test 2", () => {
         expect(
-            printTerm(new Parser(new Lexer("((λx. (x x)) (λy. (y y)))").scanTokens()).parseTerm())
+            printTerm(
+                new Parser(
+                    new Lexer("((λx. (x x)) (λy. (y y)))", logger).lexTokens(),
+                    logger
+                ).parseTerm()
+            )
         ).to.equal("((λx. (x x)) (λy. (y y)))");
     });
 
     it("Parse test 3", () => {
-        expect(printTerm(new Parser(new Lexer("(Lx.x Ly.y y)").scanTokens()).parseTerm())).to.equal(
-            "(λx. (x (λy. (y y))))"
-        );
+        expect(
+            printTerm(
+                new Parser(new Lexer("(Lx.x Ly.y y)", logger).lexTokens(), logger).parseTerm()
+            )
+        ).to.equal("(λx. (x (λy. (y y))))");
     });
 
     it("Associativity test 1", () => {
-        expect(printTerm(new Parser(new Lexer("Lx.x x x x").scanTokens()).parseTerm())).to.equal(
-            "(λx. (((x x) x) x))"
-        );
+        expect(
+            printTerm(new Parser(new Lexer("Lx.x x x x", logger).lexTokens(), logger).parseTerm())
+        ).to.equal("(λx. (((x x) x) x))");
     });
 
     it("Parent assignment test", () => {
         const tree: Term = new Parser(
-            new Lexer("((λx. (x x)) (λy. (y y)))").scanTokens()
+            new Lexer("((λx. (x x)) (λy. (y y)))", logger).lexTokens(),
+            logger
         ).parseTerm();
         traverseAst(tree, (val: Term) => {
             if (val instanceof Application) {
@@ -47,34 +56,44 @@ describe("Parser tests", () => {
     });
 
     it("Error test 1", () => {
-        expect(new Parser(new Lexer("Lx.x x .x x").scanTokens()).parseTerm()).to.be.a("null");
+        expect(
+            new Parser(new Lexer("Lx.x x .x x", logger).lexTokens(), logger).parseTerm()
+        ).to.be.a("null");
     });
 
     it("Error test 2", () => {
-        expect(new Parser(new Lexer("Lx.x x L x x").scanTokens()).parseTerm()).to.be.a("null");
+        expect(
+            new Parser(new Lexer("Lx.x x L x x", logger).lexTokens(), logger).parseTerm()
+        ).to.be.a("null");
     });
 
     it("Error test 3", () => {
-        expect(new Parser(new Lexer("Lx.. z x x").scanTokens()).parseTerm()).to.be.a("null");
+        expect(new Parser(new Lexer("Lx.. z x x", logger).lexTokens(), logger).parseTerm()).to.be.a(
+            "null"
+        );
     });
 
     it("Error test 4", () => {
-        expect(new Parser(new Lexer("Lx z. z x x").scanTokens()).parseTerm()).to.be.a("null");
+        expect(
+            new Parser(new Lexer("(Lx. ) z x x", logger).lexTokens(), logger).parseTerm()
+        ).to.be.a("null");
     });
 
     it("Error test 5", () => {
-        expect(new Parser(new Lexer("(Lx. ) z x x").scanTokens()).parseTerm()).to.be.a("null");
+        expect(
+            new Parser(new Lexer("(Lx.  z x x", logger).lexTokens(), logger).parseTerm()
+        ).to.be.a("null");
     });
 
     it("Error test 6", () => {
-        expect(new Parser(new Lexer("(Lx.  z x x").scanTokens()).parseTerm()).to.be.a("null");
+        expect(
+            new Parser(new Lexer("Lx. z x ) x", logger).lexTokens(), logger).parseTerm()
+        ).to.be.a("null");
     });
 
     it("Error test 7", () => {
-        expect(new Parser(new Lexer("Lx. z x ) x").scanTokens()).parseTerm()).to.be.a("null");
-    });
-
-    it("Error test 8", () => {
-        expect(new Parser(new Lexer("Lx world. z x ) x").scanTokens()).parseTerm()).to.be.a("null");
+        expect(
+            new Parser(new Lexer("Lx world. z x ) x", logger).lexTokens(), logger).parseTerm()
+        ).to.be.a("null");
     });
 });

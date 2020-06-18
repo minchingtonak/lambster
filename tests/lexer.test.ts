@@ -2,12 +2,13 @@ import * as chai from "chai";
 import { Lexer } from "../src/lexer";
 import { TokenType } from "../src/tokentype";
 import { Token } from "../src/token";
+import { logger } from "./util";
 
 const expect = chai.expect;
 
 describe("Lexer tests", () => {
     it("Basic lexing test", () => {
-        expect(new Lexer("(").scanTokens()).deep.equal([
+        expect(new Lexer("(", logger).lexTokens()).deep.equal([
             new Token(TokenType.LPAREN, "(", 1, 1, 1),
             new Token(TokenType.NEWLINE, "<newline>", 1, 2, 1),
             new Token(TokenType.EOF, "", 1, 2, 0),
@@ -15,7 +16,7 @@ describe("Lexer tests", () => {
     });
 
     it("Slightly more involved test", () => {
-        expect(new Lexer("((  )( L 12llo \t \n .. λlambda").scanTokens()).deep.equal([
+        expect(new Lexer("((  )( L 12llo \t \n .. λlambda", logger).lexTokens()).deep.equal([
             new Token(TokenType.LPAREN, "(", 1, 1, 1),
             new Token(TokenType.LPAREN, "(", 1, 2, 1),
             new Token(TokenType.RPAREN, ")", 1, 5, 1),

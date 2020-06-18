@@ -1,6 +1,7 @@
-import {Term, Abstraction, Application } from '../src/ast';
+import { Term, Abstraction, Application } from "../src/ast";
+import Logger from "../src/logger";
 
-export function traverseAst(root: Term, test: (val: any) => void) {
+function traverseAst(root: Term, test: (val: any) => void) {
     test(root);
     if (root instanceof Application) {
         traverseAst(root.func, test);
@@ -9,3 +10,7 @@ export function traverseAst(root: Term, test: (val: any) => void) {
         traverseAst(root.body, test);
     }
 }
+
+const logger: Logger = new Logger();
+
+export { traverseAst, logger };

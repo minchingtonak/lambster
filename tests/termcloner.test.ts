@@ -4,12 +4,16 @@ import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";
 import { cloneTerm } from "../src/termcloner";
 import { traverseAst } from "./util";
+import { logger } from "./util";
 
 const expect = chai.expect;
 
 describe("AST cloner tests", () => {
     it("Basic clone test", () => {
-        const tree: Term = new Parser(new Lexer("(Lx.x Ly.y y)").scanTokens()).parseTerm();
+        const tree: Term = new Parser(
+            new Lexer("(Lx.x Ly.y y)", logger).lexTokens(),
+            logger
+        ).parseTerm();
 
         const copy: Term = cloneTerm(tree, null);
 
