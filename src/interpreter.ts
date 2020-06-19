@@ -433,14 +433,10 @@ export class Interpreter implements StmtVisitor<void> {
 
     visitTermStmt(term_stmt: TermStmt): void {
         const reduct: Term = this.evalute(term_stmt.term);
-        const s_hash: number = hashTermStructure(reduct);
-        if (s_hash in this.structure_hashes)
-            this.logger.log(
-                `    ↳ equivalent to: ${joinSet(this.structure_hashes[s_hash], ", ")}\n`
-            );
+        this.logger.vlog();
     }
     visitBindingStmt(binding: BindingStmt): void {
-        const reduct: Term = this.evalute(binding.term);
+        const reduct: Term = this.evalute(binding.term, binding.name);
         this.bindings[binding.name] = reduct;
         this.addHash(reduct, binding.name);
     }
@@ -462,13 +458,17 @@ export class Interpreter implements StmtVisitor<void> {
         return this.logger.hasError;
     }
 
-    private evalute(term: Term): Term {
+    private evalute(term: Term, binding_name?: string): Term {
         this.logger.vlog(`λ > ${printTerm(term)}`);
         const reduct: Term = new Reducer(this.rename_free_vars, this.logger).reduceTerm(
             this.resolver.resolveTerm(term)
         );
         this.logger.vvlog();
-        this.logger.log(`>>> ${printTerm(reduct)}`);
+        if (binding_name) this.logger.log(`>>> ${binding_name} = ${printTerm(reduct)}`);
+        else this.logger.log(`>>> ${printTerm(reduct)}`);
+        const s_hash: number = hashTermStructure(reduct);
+        if (s_hash in this.structure_hashes)
+            this.logger.log(`    ↳ equivalent to: ${joinSet(this.structure_hashes[s_hash], ", ")}`);
         return reduct;
     }
 
