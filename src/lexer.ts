@@ -17,7 +17,7 @@ export class Lexer {
         lambda: TokenType.LAMBDA,
         env: TokenType.ENV,
         unbind: TokenType.UNBIND,
-        help: TokenType.HELP
+        help: TokenType.HELP,
     };
 
     constructor(source: string, logger: Logger) {
@@ -86,7 +86,8 @@ export class Lexer {
 
     private comment() {
         do this.advance();
-        while (!this.isAtEnd() && this.peekNext() !== "\n");
+        while (!this.isAtEnd() && this.peek() !== "\n");
+        if (this.peek() === "\n") this.advance();
     }
 
     private match(expected: string): boolean {
