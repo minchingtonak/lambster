@@ -12,8 +12,7 @@
         "test": "mocha --require ts-node/register ./tests/**/*.test.ts",
         "build": "tsc -p .",
         "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
-        "clean": "rm -rf ./dist",
-        "publish": "git push --tags && npm publish"
+        "clean": "rm -rf ./dist"
     },
     "bin": {
         "lambster": "dist/src/cli.js"
