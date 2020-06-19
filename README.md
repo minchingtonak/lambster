@@ -47,7 +47,7 @@
 -   Simple variable system with useful predefined lambda calculus terms
     ```
     λ> duplicate = Lx.x x
-    >>> (λx. (x x))
+    >>> duplicate = (λx. (x x))
     λ> duplicate z
     >>> (z z)
     ```
@@ -105,6 +105,7 @@
     one:	(λf. (λx. (f x)))
     two:	(λf. (λx. (f (f x))))
     three:	(λf. (λx. (f (f (f x)))))
+    ...
     λ> plus one two
     >>> (λf. (λy. (f (f (f y)))))
         ↳ equivalent to: three
@@ -206,6 +207,8 @@ console.log(output);
 
 For all you PL nerds out there, the interpreter recognizes this grammar:
 
+### Grammar for lambster
+
 ```
 program     → ( stmt )* EOF ;
 
@@ -214,7 +217,8 @@ stmt        → bindingStmt
             | termStmt
             | "\n" ;
 bindingStmt → IDENTIFIER "=" expression "\n" ;
-commandStmt → "env" "\n"
+commandStmt → "help" "\n"
+            | "env" "\n"
             | "unbind" IDENTIFIER "\n" ;
 termStmt    → term "\n" ;
 term        → IDENTIFIER
@@ -225,8 +229,27 @@ abstraction      → LAMBDA IDENTIFIER+ "." expression ;
 application → expression expression ;
 grouping    → "(" expression ")" ;
 LAMBDA      → "L" | "λ" | "lambda" ;
-IDENTIFIER  → [a-z0-9]+ ; // Note, only lowercase letters allowed
+IDENTIFIER  → [a-z0-9]+ ;
 ```
+
+### Modified for recursive descent parsing
+
+```
+term            → abstraction
+                | application ;
+abstraction     → LAMBDA IDENTIFIER+ "." term ;
+application     → atom atom* ;
+atom            → "(" term ")"
+                | IDENTIFIER
+                | abstraction ;
+```
+
+### Operator precedence (descending)
+
+| Name        | Associates                              |
+| ----------- | --------------------------------------- |
+| Application | Left                                    |
+| Abstraction | Extends as far to the right as possible |
 
 ## Planned features
 
