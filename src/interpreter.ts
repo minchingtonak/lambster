@@ -432,8 +432,7 @@ export class Interpreter implements StmtVisitor<void> {
     }
 
     visitTermStmt(term_stmt: TermStmt): void {
-        const reduct: Term = this.evalute(term_stmt.term);
-        this.logger.vlog();
+        this.evalute(term_stmt.term);
     }
     visitBindingStmt(binding: BindingStmt): void {
         const reduct: Term = this.evalute(binding.term, binding.name);
@@ -469,6 +468,7 @@ export class Interpreter implements StmtVisitor<void> {
         const s_hash: number = hashTermStructure(reduct);
         if (s_hash in this.structure_hashes)
             this.logger.log(`    ↳ equivalent to: ${joinSet(this.structure_hashes[s_hash], ", ")}`);
+        this.logger.vlog();
         return reduct;
     }
 
@@ -502,12 +502,15 @@ export class Interpreter implements StmtVisitor<void> {
             "Example:",
             "λ> b = Lc.c",
             "λ > (λc. c)",
-            ">>> (λc. c)",
+            ">>> b = (λc. c)",
+            "",
             "λ> z = b",
             "λ > b",
             "    δ > expanded 'b' into '(λc. c)'",
             "Δ > (λc. c)",
-            ">>> (λc. c)",
+            ">>> z = (λc. c)",
+            "",
+            "    ↳ equivalent to: b",
             "λ> (Lx y. x y z)(Ly. (Lx.x y) a y) b",
             "λ > (((λx. (λy. ((x y) z))) (λy. (((λx. (x y)) a) y))) b)",
             "    δ > expanded 'z' into '(λc. c)'",

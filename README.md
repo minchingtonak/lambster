@@ -95,6 +95,10 @@
     Error at line 1 [4, 5]: Expected ')' to close expression.
         (xx
            ^
+    λ> Lx x
+    Error at line 1 [5, 6]: Expected dot after abstraction declaration, got '<newline>'.
+	Lx x
+	    ^
     ```
 
 -   Results are checked for structural equivalence to terms bound in the environment
