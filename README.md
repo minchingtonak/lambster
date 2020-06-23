@@ -258,6 +258,7 @@ atom            → "(" term ")"
 ## Planned features
 
 -   Infinite/exponentially increasing reduction detection
+-   Automatically parse numeric constants into their Church numeral equivalent
 -   Support for [De Bruijn indices](https://en.wikipedia.org/wiki/De_Bruijn_index)
 -   Even prettier printing in step-by-step verbosity
 -   Library functions that do useful/interesting things (TBD)
