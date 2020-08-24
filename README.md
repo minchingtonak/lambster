@@ -131,6 +131,14 @@ npm i lambster
 
 ## Usage
 
+### CLI
+
+After `lambster` is installed, launch the interactive prompt:
+```bash
+$ lambster
+```
+### Client
+
 After `lambster` is installed, import and use the interpreter:
 
 ```js
