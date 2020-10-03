@@ -27,8 +27,8 @@ export class TermStmt {
 }
 
 export class BindingStmt {
-    name: string;
-    term: Term;
+    readonly name: string;
+    readonly term: Term;
 
     constructor(name: string, term: Term) {
         this.name = name;
@@ -47,10 +47,10 @@ export enum CommandType {
 }
 
 export class CommandStmt {
-    type: CommandType;
-    argument?: string;
+    readonly type: CommandType;
+    readonly argument?: string;
 
-    constructor(type: CommandType, argument = undefined) {
+    constructor(type: CommandType, argument?: string) {
         this.type = type;
         this.argument = argument;
     }
@@ -210,8 +210,9 @@ export class Application extends Term {
 
 export class Variable extends Term {
     name: string;
-    private is_free_var: boolean = undefined;
-    free_renamed: boolean = false;
+    private free_renamed: boolean = false;
+    private is_free?: boolean;
+
 
     constructor(name: string) {
         super();
@@ -219,7 +220,7 @@ export class Variable extends Term {
     }
 
     getParentAbstraction(): Abstraction {
-        if (this.is_free_var) return null;
+        if (this.is_free) return null;
         let current: Term = this.parent;
         while (current) {
             if (current instanceof Abstraction && this.name === current.name) return current;
@@ -238,9 +239,13 @@ export class Variable extends Term {
     }
 
     isFreeVar(): boolean {
-        return this.is_free_var === undefined
-            ? (this.is_free_var = this.getParentAbstraction() === null)
-            : this.is_free_var;
+        return this.is_free === undefined
+            ? (this.is_free = this.getParentAbstraction() === null)
+            : this.is_free;
+    }
+
+    wasFreeRenamed(): boolean {
+        return this.free_renamed;
     }
 
     getAllBoundVars(): Variable[] {
