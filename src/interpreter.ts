@@ -10,7 +10,7 @@ import {
     CommandStmt,
     CommandType,
 } from "./ast";
-import { Reducer } from "./reducer";
+import { Reducer, RecursionDepthError } from "./reducer";
 import { BindingResolver } from "./bindingresolver";
 import { printTerm } from "./termprinter";
 import { hashTermStructure } from "./termhasher";
@@ -459,17 +459,23 @@ export class Interpreter implements StmtVisitor<void> {
 
     private evalute(term: Term, binding_name?: string): Term {
         this.logger.vlog(`λ > ${printTerm(term)}`);
-        const reduct: Term = new Reducer(this.rename_free_vars, this.logger).reduceTerm(
-            this.resolver.resolveTerm(term)
-        );
-        this.logger.vvlog();
-        if (binding_name) this.logger.log(`>>> ${binding_name} = ${printTerm(reduct)}`);
-        else this.logger.log(`>>> ${printTerm(reduct)}`);
-        const s_hash: number = hashTermStructure(reduct);
-        if (s_hash in this.structure_hashes)
-            this.logger.log(`    ↳ equivalent to: ${joinSet(this.structure_hashes[s_hash], ", ")}`);
-        this.logger.vlog();
-        return reduct;
+        try {
+            const reduct: Term = new Reducer(this.rename_free_vars, this.logger).reduceTerm(
+                this.resolver.resolveTerm(term)
+            );
+            this.logger.vvlog();
+            if (binding_name) this.logger.log(`>>> ${binding_name} = ${printTerm(reduct)}`);
+            else this.logger.log(`>>> ${printTerm(reduct)}`);
+            const s_hash: number = hashTermStructure(reduct);
+            if (s_hash in this.structure_hashes)
+                this.logger.log(
+                    `    ↳ equivalent to: ${joinSet(this.structure_hashes[s_hash], ", ")}`
+                );
+            this.logger.vlog();
+            return reduct;
+        } catch (e) {
+            this.logger.log(`Error: ${(e as RecursionDepthError).message}`);
+        }
     }
 
     private printBindings() {
@@ -487,7 +493,7 @@ export class Interpreter implements StmtVisitor<void> {
         [
             "~= Commands =~",
             "help:\t\t print this help message",
-            "env:\t\t prints all variables currently bound in the environment (try this to see the builtin bindings)",
+            "env:\t\t prints all variables currently bound in the environment (try this to see the built-in bindings)",
             "unbind <name>:\t removes the binding with <name> from the environment",
             "\n",
             "~= Output =~",

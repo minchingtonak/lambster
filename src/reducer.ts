@@ -3,11 +3,20 @@ import { cloneTerm } from "./termcloner";
 import { printTerm } from "./termprinter";
 import Logger from "./logger";
 
+export class RecursionDepthError extends Error {
+    constructor() {
+        super("Maximum recursion depth exceeded while reducing term.");
+    }
+}
+
 export class Reducer implements TermVisitor<Term> {
     private logger: Logger;
 
     private rename_free_vars: boolean;
     private redex: Term;
+    private depth: number;
+
+    private static MAX_RECURSION_DEPTH: number = 1000;
 
     constructor(rename_free_vars: boolean, logger: Logger) {
         this.rename_free_vars = rename_free_vars;
@@ -15,12 +24,16 @@ export class Reducer implements TermVisitor<Term> {
     }
 
     reduceTerm(term: Term): Term {
+        this.depth = 0;
         this.redex = cloneTerm(term);
         return this.reduce(this.redex);
     }
 
     private reduce(term: Term): Term {
-        return term.accept(this);
+        if (this.depth++ > Reducer.MAX_RECURSION_DEPTH) throw new RecursionDepthError();
+        const result: Term = term.accept(this);
+        this.depth--;
+        return result;
     }
 
     visitAbstraction(abstraction: Abstraction): Term {
@@ -75,7 +88,7 @@ export class Reducer implements TermVisitor<Term> {
     }
     visitVariable(variable: Variable): Term {
         // Rename free variable to unambiguous name if initialized with rename_free_vars = true
-        if (this.rename_free_vars && !variable.free_renamed && variable.isFreeVar()) {
+        if (this.rename_free_vars && !variable.wasFreeRenamed() && variable.isFreeVar()) {
             const new_name: string = this.genNewFreeName();
             this.logger.vvlog(`\nRenaming free variable '${variable.name}' to '${new_name}'`);
             this.logger.vlog(`ε > '${variable.name}' → '${new_name}'`);
