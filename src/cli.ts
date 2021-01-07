@@ -37,33 +37,33 @@ module LambdaCalculus {
     }
 
     function parseArgs() {
-        const obj = { verbosity: Verbosity.NONE, rename_free_vars: false };
+        const options = { verbosity: Verbosity.NONE, rename_free_vars: false };
         process.argv.slice(2).forEach(arg => {
             if (arg.startsWith("-")) {
                 switch (arg.substr(1)) {
                     case "v":
-                        if (obj["verbosity"] < Verbosity.LOW) obj["verbosity"] = Verbosity.LOW;
+                        if (options["verbosity"] < Verbosity.LOW) options["verbosity"] = Verbosity.LOW;
                         break;
                     case "vv":
-                        obj["verbosity"] = Verbosity.HIGH;
+                        options["verbosity"] = Verbosity.HIGH;
                         break;
                     case "r":
-                        obj["rename_free_vars"] = true;
+                        options["rename_free_vars"] = true;
                         break;
                     case "-help":
                     case "h":
-                        obj["help"] = true;
+                        options["help"] = true;
                         break;
                     default:
                         throw new Error(`Failed to parse arguments: unexpected option '${arg}'`);
                 }
             } else {
-                if ("filename" in obj)
+                if ("filename" in options)
                     throw new Error(`Failed to parse arguments: unexpected '${arg}'`);
-                obj["filename"] = arg;
+                options["filename"] = arg;
             }
         });
-        return obj;
+        return options;
     }
 
     function runFile(filename: string) {
