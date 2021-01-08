@@ -14,7 +14,7 @@ describe("Reduction tests", () => {
         expect(printTerm(tree)).to.equal(expected);
     }
 
-    function expectTreeToReduceTo(tree: Term, expected: string, rename_free = false) {
+    function expectTreeToReduceTo(tree: Term, expected: string, rename_free: boolean = false) {
         expectTreeToBe(new Reducer(rename_free, logger).reduceTerm(tree), expected);
     }
 
@@ -24,7 +24,7 @@ describe("Reduction tests", () => {
             logger
         ).parseTerm();
 
-        tree.rename("z", (tree as Application).func as Abstraction);
+        tree.rename("z", ((tree as Application).func as Abstraction).id);
         expectTreeToBe(tree, "((λz. z) (λy. y))");
 
         ((tree as Application).argument as Abstraction).alphaReduce("w");
@@ -152,5 +152,14 @@ describe("Reduction tests", () => {
 
         expectTreeToReduceTo(tree, "(X`0 (λe. X`2))", true);
         expectTreeToReduceTo(tree, "(t (λe. t))");
+    });
+
+    it("Reduction test 9", () => {
+        const tree: Term = new Parser(
+            new Lexer(`(Lx.(Ly.Lx.y) x) z`, logger).lexTokens(),
+            logger
+        ).parseTerm();
+
+        expectTreeToReduceTo(tree, "(λx. z)");
     });
 });
