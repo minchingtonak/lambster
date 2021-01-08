@@ -9,7 +9,7 @@ class TermCloner implements TermVisitor<Term> {
 
     visitAbstraction(abstraction: Abstraction): Term {
         return this.copyAtomicMembers(
-            new Abstraction(abstraction.name, abstraction.body.accept(this)),
+            new Abstraction(abstraction.name, abstraction.body.accept(this), abstraction.id),
             abstraction
         );
     }
@@ -20,7 +20,7 @@ class TermCloner implements TermVisitor<Term> {
         );
     }
     visitVariable(variable: Variable): Term {
-        return this.copyAtomicMembers(new Variable(variable.name), variable);
+        return this.copyAtomicMembers(new Variable(variable.name, variable.id), variable);
     }
 
     private copyAtomicMembers(dest: Term, source: Term): Term {
