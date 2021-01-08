@@ -47,6 +47,7 @@ export class Lexer {
                 this.addToken(TokenType.RPAREN);
                 break;
             case "L":
+            case "\\":
             case "λ":
                 this.addToken(TokenType.LAMBDA);
                 break;
@@ -122,7 +123,7 @@ export class Lexer {
         this.tokens.push(this.genToken(type, lexeme === "\n" ? "<newline>" : lexeme));
     }
 
-    private genToken(type: TokenType, lexeme: string, eof = false, newline = false): Token {
+    private genToken(type: TokenType, lexeme: string, eof: boolean = false, newline: boolean = false): Token {
         return new Token(
             type,
             lexeme,
