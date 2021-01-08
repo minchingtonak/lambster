@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { Interpreter } from "./interpreter";
 import { Verbosity } from "./logger";
-import { name, version } from "../package.json";
 import * as readline from "readline";
 import * as fs from "fs";
 
@@ -42,7 +41,8 @@ module LambdaCalculus {
             if (arg.startsWith("-")) {
                 switch (arg.substr(1)) {
                     case "v":
-                        if (options["verbosity"] < Verbosity.LOW) options["verbosity"] = Verbosity.LOW;
+                        if (options["verbosity"] < Verbosity.LOW)
+                            options["verbosity"] = Verbosity.LOW;
                         break;
                     case "vv":
                         options["verbosity"] = Verbosity.HIGH;
@@ -97,13 +97,13 @@ module LambdaCalculus {
             process.exit(0);
         });
         console.log(
-            `${name}: A lambda calculus interpreter\nversion ${version} -- type 'help' for more information`
+            "lambster: A lambda calculus interpreter\n -- type 'help' for more information"
         );
         for (;;) run(await waitForLine("λ> "));
     }
 
     function run(source: string) {
-        interpreter.interpret(source);
+        interpreter.evaluate(source);
     }
 
     function usage() {
