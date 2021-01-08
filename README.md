@@ -240,7 +240,7 @@ term        → IDENTIFIER
 abstraction      → LAMBDA IDENTIFIER+ "." expression ;
 application → expression expression ;
 grouping    → "(" expression ")" ;
-LAMBDA      → "L" | "λ" | "lambda" ;
+LAMBDA      → "L" | "\" | "λ" | "lambda" ;
 IDENTIFIER  → [a-z0-9]+ ;
 ```
 
