@@ -13,17 +13,21 @@ import {
 } from "./ast";
 import Logger, { ParseError } from "./logger";
 
-class AbstractionIdList {
+class AbstractionIndexList {
     private counter: number = 1;
     private ids: { [key: string]: number[] } = {};
 
-    private nextId(): number {
-        return this.counter++;
+    constructor(start_index: number) {
+        this.counter = start_index;
+    }
+
+    currentIndex(): number {
+        return this.counter;
     }
 
     push(name: string) {
         if (!(name in this.ids)) this.ids[name] = [];
-        this.ids[name].push(this.nextId());
+        this.ids[name].push(this.counter++);
     }
 
     pop(name: string) {
@@ -46,11 +50,21 @@ export class Parser {
     private tokens: Token[];
     private current: number = 0;
 
-    private idList: AbstractionIdList = new AbstractionIdList();
+    private idList: AbstractionIndexList;
 
-    constructor(tokens: Token[], logger: Logger) {
+    constructor(tokens: Token[] = [], logger: Logger = new Logger(), start_index: number = 1) {
         this.tokens = tokens;
         this.logger = logger;
+        this.idList = new AbstractionIndexList(start_index);
+    }
+
+    setTokens(tokens: Token[]) {
+        this.tokens = tokens;
+        this.current = 0;
+    }
+
+    currentIndex() {
+        return this.idList.currentIndex();
     }
 
     parse(): Stmt[] {
