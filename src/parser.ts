@@ -46,8 +46,8 @@ export class Parser {
             while (this.peek().type === TokenType.NEWLINE) this.advance();
             if (this.check(TokenType.IDENTIFIER) && this.checkNext(TokenType.EQUALS))
                 return this.bindingStmt();
-            else if (this.match(TokenType.ENV)) return this.envStmt();
-            else if (this.match(TokenType.HELP)) return this.helpStmt();
+            else if (this.match(TokenType.ENV)) return this.cmdStmt(TokenType.ENV, "env");
+            else if (this.match(TokenType.HELP)) return this.cmdStmt(TokenType.HELP, "help");
             else if (this.match(TokenType.UNBIND)) return this.unbindStmt();
             return this.termStmt();
         } catch (p) {
@@ -65,14 +65,23 @@ export class Parser {
         return new BindingStmt(ident, term);
     }
 
-    private envStmt(): CommandStmt {
-        this.consume(TokenType.NEWLINE, "Expected newline after env command.");
-        return new CommandStmt(CommandType.ENV);
-    }
-
-    private helpStmt(): CommandStmt {
-        this.consume(TokenType.NEWLINE, "Expected newline after help command.");
-        return new CommandStmt(CommandType.HELP);
+    private static tokenToCmd: CommandType[] = [
+        null,
+        null,
+        null,
+        CommandType.ENV,
+        null,
+        CommandType.HELP,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+    ];
+    private cmdStmt(type: TokenType, str: string): CommandStmt {
+        this.consume(TokenType.NEWLINE, `Expected newline after ${str} command.`);
+        return new CommandStmt(Parser.tokenToCmd[type]);
     }
 
     private unbindStmt(): CommandStmt {
