@@ -58,6 +58,7 @@ export class Reducer implements TermVisitor<Term> {
                 .getAllBoundVars()
                 .filter(v => conflicts.has(v.name))
                 .map(v => v.getParentAbstraction())
+                .filter(v => v !== null) // TODO: this filter may not be necessary
         );
         if (conflicting_abs.size) this.logger.vvlog();
         conflicting_abs.forEach(abs => {
@@ -92,7 +93,7 @@ export class Reducer implements TermVisitor<Term> {
             const new_name: string = this.genNewFreeName();
             this.logger.vvlog(`\nRenaming free variable '${variable.name}' to '${new_name}'`);
             this.logger.vlog(`ε > '${variable.name}' → '${new_name}'`);
-            variable.renameFreeVar(new_name);
+            variable.renameFree(new_name);
         }
         return variable;
     }
