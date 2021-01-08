@@ -32,7 +32,6 @@ class TermCloner implements TermVisitor<Term> {
 }
 
 const cloner: TermCloner = new TermCloner();
-function cloneTerm(term: Term, new_parent = null): Term {
+export function clone(term: Term, new_parent = null): Term {
     return cloner.clone(term, new_parent);
 }
-export { cloneTerm };

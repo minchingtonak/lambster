@@ -1,6 +1,6 @@
 import { TermVisitor, Term, Abstraction, Application, Variable } from "./ast";
-import { cloneTerm } from "./termcloner";
-import { printTerm } from "./termprinter";
+import { clone } from "./termcloner";
+import { stringify } from "./termstringifier";
 import Logger from "./logger";
 
 export class RecursionDepthError extends Error {
@@ -25,7 +25,7 @@ export class Reducer implements TermVisitor<Term> {
 
     reduceTerm(term: Term): Term {
         this.depth = 0;
-        this.redex = cloneTerm(term);
+        this.redex = clone(term);
         return this.reduce(this.redex);
     }
 
@@ -63,13 +63,13 @@ export class Reducer implements TermVisitor<Term> {
         if (conflicting_abs.size) this.logger.vvlog();
         conflicting_abs.forEach(abs => {
             const new_name: string = this.genNewName();
-            this.logger.vvlog(`Alpha reducing '${printTerm(abs)}' with name '${new_name}'`);
+            this.logger.vvlog(`Alpha reducing '${stringify(abs)}' with name '${new_name}'`);
             abs.alphaReduce(new_name);
         });
-        if (conflicting_abs.size !== 0) this.logger.vlog(`α > ${printTerm(this.redex)}`);
+        if (conflicting_abs.size !== 0) this.logger.vlog(`α > ${stringify(this.redex)}`);
 
         // Beta reduce x_normal into f_normal then reduce the result of that beta reduction to normal form
-        this.logger.vvlog(`\nBeta reducing '${printTerm(x_normal)}' into '${printTerm(f_normal)}'`);
+        this.logger.vvlog(`\nBeta reducing '${stringify(x_normal)}' into '${stringify(f_normal)}'`);
         const beta_reduct: Term = f_normal.betaReduce(x_normal, application.parent);
         if (application.parent) {
             if (application.parent instanceof Abstraction) {
@@ -84,7 +84,7 @@ export class Reducer implements TermVisitor<Term> {
         } else {
             this.redex = beta_reduct;
         }
-        this.logger.vlog(`β > ${printTerm(this.redex)}`);
+        this.logger.vlog(`β > ${stringify(this.redex)}`);
         return this.reduce(beta_reduct);
     }
     visitVariable(variable: Variable): Term {

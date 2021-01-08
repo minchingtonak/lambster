@@ -1,4 +1,4 @@
-import { cloneTerm } from "./termcloner";
+import { clone } from "./termcloner";
 
 export interface TermVisitor<T> {
     visitAbstraction(abstraction: Abstraction): T;
@@ -90,12 +90,12 @@ export class Abstraction extends Term {
         if (replacements.length !== 0) {
             replacements.forEach(rep => {
                 if (rep.parent instanceof Abstraction) {
-                    rep.parent.body = cloneTerm(argument, rep.parent);
+                    rep.parent.body = clone(argument, rep.parent);
                 } else if (rep.parent instanceof Application) {
                     if (rep.parent.func === rep) {
-                        rep.parent.func = cloneTerm(argument, rep.parent);
+                        rep.parent.func = clone(argument, rep.parent);
                     } else {
-                        rep.parent.argument = cloneTerm(argument, rep.parent);
+                        rep.parent.argument = clone(argument, rep.parent);
                     }
                 } else {
                     throw new Error("something is very wrong");
