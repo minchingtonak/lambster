@@ -20,7 +20,7 @@ export class Lexer {
         help: TokenType.HELP,
     };
 
-    constructor(source: string, logger: Logger) {
+    constructor(source: string = "", logger: Logger = new Logger()) {
         this.source = source;
         this.logger = logger;
     }

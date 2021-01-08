@@ -38,6 +38,63 @@ export class Interpreter implements StmtVisitor<void> {
         // if (s_set.size === 0) delete this.structure_hashes[s_hash];
     }
 
+    private start_index: number;
+    private bindings: { [key: string]: Term } =
+        // Process multikeys
+        (dict => {
+            const parser: Parser = new Parser(),
+                parsed_terms: { [key: string]: Term } = {};
+            Object.keys(dict).forEach(key => {
+                const subkeys: string[] = key.split("|");
+
+                parser.setTokens(new Lexer(dict[key]).lexTokens());
+                const term: Term = parser.parseTerm();
+                subkeys.forEach(subkey => {
+                    this.addHash(term, subkey);
+                    parsed_terms[subkey] = term;
+                });
+            });
+            this.start_index = parser.currentIndex();
+            return parsed_terms;
+        })({
+            // Logic
+            true: "(λt. (λf. t))",
+            false: "(λt. (λf. f))",
+            and: "(λa. (λb. ((a b) a)))",
+            or: "(λa. (λb. ((a a) b)))",
+            not: "(λb. ((b false) true))",
+            if: "(λp. (λa. (λb. ((p a) b))))",
+
+            // Lists
+            "pair|cons": "(λx. (λy. (λf. ((f x) y))))",
+            "first|car": "(λp. (p true))",
+            "second|cdr": "(λp. (p false))",
+            "nil|empty": "(λx. true)",
+            "null|isempty": "(λp. (p (λx. (λy. false))))",
+
+            // Trees
+            tree: "(λd. (λl. (λr. ((pair d) ((pair l) r)))))",
+            datum: "(λt. (first t))",
+            left: "(λt. (first (second t)))",
+            right: "(λt. (second (second t)))",
+
+            // Arithmetic
+            incr: "(λn. (λf. (λy. (f ((n f) y)))))",
+            plus: "(λm. (λn. ((m incr) n)))",
+            times: "(λm. (λn. ((m (plus n)) zero)))",
+            iszero: "(λn. ((n (λy. false)) true))",
+            zero: "(λf. (λx. x))",
+            one: "(λf. (λx. (f x)))",
+            two: "(λf. (λx. (f (f x))))",
+            three: "(λf. (λx. (f (f (f x)))))",
+            four: "(λf. (λx. (f (f (f (f x))))))",
+            five: "(λf. (λx. (f (f (f (f (f x)))))))",
+            six: "(λf. (λx. (f (f (f (f (f (f x))))))))",
+            seven: "(λf. (λx. (f (f (f (f (f (f (f x)))))))))",
+            eight: "(λf. (λx. (f (f (f (f (f (f (f (f x))))))))))",
+            nine: "(λf. (λx. (f (f (f (f (f (f (f (f (f x)))))))))))",
+        });
+
     private rename_free_vars: boolean;
     private logger: Logger;
     private resolver: BindingResolver;
@@ -72,7 +129,8 @@ export class Interpreter implements StmtVisitor<void> {
         this.logger.setOptions({ source: source });
         const stmts: Stmt[] = new Parser(
             new Lexer(source, this.logger).lexTokens(),
-            this.logger
+            this.logger,
+            this.start_index
         ).parse();
 
         if (this.logger.hasError) return;
@@ -184,7 +242,7 @@ export class Interpreter implements StmtVisitor<void> {
             "~= Syntax =~",
             "Lambda calculus terms follow this grammar:",
             "\tterm\t\t → abstraction | application | variable",
-            "\tabstraction\t → (lambda | L | λ) IDENTIFIER+ . term",
+            "\tabstraction\t → (lambda | L | \\ | λ) IDENTIFIER+ . term",
             "\tapplication\t → term term",
             "\tvariable\t → IDENTIFIER",
             "\tIDENTIFIER\t → [a-z0-9]+",
@@ -198,352 +256,10 @@ export class Interpreter implements StmtVisitor<void> {
             "Examples:",
             "\t(Lx. x x) y",
             "\t(Lx y. y x) lambda f. f z",
-            "\tduplicate = La.a a",
+            "\tduplicate = \\a.a a",
             "\thello world",
         ].forEach(line => {
             this.logger.log(line);
         });
     }
-
-    private bindings: { [key: string]: Term } =
-        // Process multikeys
-        (dict => {
-            Object.keys(dict).forEach(key => {
-                const subkeys: string[] = key.split("|");
-                subkeys.forEach(subkey => {
-                    dict[subkey] = dict[key];
-                    this.addHash(dict[key], subkey);
-                });
-                if (subkeys.length > 1) delete dict[key];
-            });
-            return dict;
-        })({
-            // Logic
-            true: new Abstraction("t", new Abstraction("f", new Variable("t"))),
-            false: new Abstraction("t", new Abstraction("f", new Variable("f"))),
-            and: new Abstraction(
-                "a",
-                new Abstraction(
-                    "b",
-                    new Application(
-                        new Application(new Variable("a"), new Variable("b")),
-                        new Variable("a")
-                    )
-                )
-            ),
-            or: new Abstraction(
-                "a",
-                new Abstraction(
-                    "b",
-                    new Application(
-                        new Application(new Variable("a"), new Variable("a")),
-                        new Variable("b")
-                    )
-                )
-            ),
-            not: new Abstraction(
-                "b",
-                new Application(
-                    new Application(new Variable("b"), new Variable("false")),
-                    new Variable("true")
-                )
-            ),
-            if: new Abstraction(
-                "p",
-                new Abstraction(
-                    "a",
-                    new Abstraction(
-                        "b",
-                        new Application(
-                            new Application(new Variable("p"), new Variable("a")),
-                            new Variable("b")
-                        )
-                    )
-                )
-            ),
-            // Lists
-            "pair|cons": new Abstraction(
-                "x",
-                new Abstraction(
-                    "y",
-                    new Abstraction(
-                        "f",
-                        new Application(
-                            new Application(new Variable("f"), new Variable("x")),
-                            new Variable("y")
-                        )
-                    )
-                )
-            ),
-            "first|car": new Abstraction(
-                "p",
-                new Application(new Variable("p"), new Variable("true"))
-            ),
-            "second|cdr": new Abstraction(
-                "p",
-                new Application(new Variable("p"), new Variable("false"))
-            ),
-            "nil|empty": new Abstraction("x", new Variable("true")),
-            "null|isempty": new Abstraction(
-                "p",
-                new Application(
-                    new Variable("p"),
-                    new Abstraction("x", new Abstraction("y", new Variable("false")))
-                )
-            ),
-            // Trees
-            tree: new Abstraction(
-                "d",
-                new Abstraction(
-                    "l",
-                    new Abstraction(
-                        "r",
-                        new Application(
-                            new Application(new Variable("pair"), new Variable("d")),
-                            new Application(
-                                new Application(new Variable("pair"), new Variable("l")),
-                                new Variable("r")
-                            )
-                        )
-                    )
-                )
-            ),
-            datum: new Abstraction("t", new Application(new Variable("first"), new Variable("t"))),
-            left: new Abstraction(
-                "t",
-                new Application(
-                    new Variable("first"),
-                    new Application(new Variable("second"), new Variable("t"))
-                )
-            ),
-            right: new Abstraction(
-                "t",
-                new Application(
-                    new Variable("second"),
-                    new Application(new Variable("second"), new Variable("t"))
-                )
-            ),
-            // Arithmetic
-            incr: new Abstraction(
-                "n",
-                new Abstraction(
-                    "f",
-                    new Abstraction(
-                        "y",
-                        new Application(
-                            new Variable("f"),
-                            new Application(
-                                new Application(new Variable("n"), new Variable("f")),
-                                new Variable("y")
-                            )
-                        )
-                    )
-                )
-            ),
-            plus: new Abstraction(
-                "m",
-                new Abstraction(
-                    "n",
-                    new Application(
-                        new Application(new Variable("m"), new Variable("incr")),
-                        new Variable("n")
-                    )
-                )
-            ),
-            times: new Abstraction(
-                "m",
-                new Abstraction(
-                    "n",
-                    new Application(
-                        new Application(
-                            new Variable("m"),
-                            new Application(new Variable("plus"), new Variable("n"))
-                        ),
-                        new Variable("zero")
-                    )
-                )
-            ),
-            iszero: new Abstraction(
-                "n",
-                new Application(
-                    new Application(new Variable("n"), new Abstraction("y", new Variable("false"))),
-                    new Variable("true")
-                )
-            ),
-            zero: new Abstraction("f", new Abstraction("x", new Variable("x"))),
-            one: new Abstraction(
-                "f",
-                new Abstraction("x", new Application(new Variable("f"), new Variable("x")))
-            ),
-            two: new Abstraction(
-                "f",
-                new Abstraction(
-                    "x",
-                    new Application(
-                        new Variable("f"),
-                        new Application(new Variable("f"), new Variable("x"))
-                    )
-                )
-            ),
-            three: new Abstraction(
-                "f",
-                new Abstraction(
-                    "x",
-                    new Application(
-                        new Variable("f"),
-                        new Application(
-                            new Variable("f"),
-                            new Application(new Variable("f"), new Variable("x"))
-                        )
-                    )
-                )
-            ),
-            four: new Abstraction(
-                "f",
-                new Abstraction(
-                    "x",
-                    new Application(
-                        new Variable("f"),
-                        new Application(
-                            new Variable("f"),
-                            new Application(
-                                new Variable("f"),
-                                new Application(new Variable("f"), new Variable("x"))
-                            )
-                        )
-                    )
-                )
-            ),
-            five: new Abstraction(
-                "f",
-                new Abstraction(
-                    "x",
-                    new Application(
-                        new Variable("f"),
-                        new Application(
-                            new Variable("f"),
-                            new Application(
-                                new Variable("f"),
-                                new Application(
-                                    new Variable("f"),
-                                    new Application(new Variable("f"), new Variable("x"))
-                                )
-                            )
-                        )
-                    )
-                )
-            ),
-            six: new Abstraction(
-                "f",
-                new Abstraction(
-                    "x",
-                    new Application(
-                        new Variable("f"),
-                        new Application(
-                            new Variable("f"),
-                            new Application(
-                                new Variable("f"),
-                                new Application(
-                                    new Variable("f"),
-                                    new Application(
-                                        new Variable("f"),
-                                        new Application(new Variable("f"), new Variable("x"))
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            ),
-            seven: new Abstraction(
-                "f",
-                new Abstraction(
-                    "x",
-                    new Application(
-                        new Variable("f"),
-                        new Application(
-                            new Variable("f"),
-                            new Application(
-                                new Variable("f"),
-                                new Application(
-                                    new Variable("f"),
-                                    new Application(
-                                        new Variable("f"),
-                                        new Application(
-                                            new Variable("f"),
-                                            new Application(new Variable("f"), new Variable("x"))
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            ),
-            eight: new Abstraction(
-                "f",
-                new Abstraction(
-                    "x",
-                    new Application(
-                        new Variable("f"),
-                        new Application(
-                            new Variable("f"),
-                            new Application(
-                                new Variable("f"),
-                                new Application(
-                                    new Variable("f"),
-                                    new Application(
-                                        new Variable("f"),
-                                        new Application(
-                                            new Variable("f"),
-                                            new Application(
-                                                new Variable("f"),
-                                                new Application(
-                                                    new Variable("f"),
-                                                    new Variable("x")
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            ),
-            nine: new Abstraction(
-                "f",
-                new Abstraction(
-                    "x",
-                    new Application(
-                        new Variable("f"),
-                        new Application(
-                            new Variable("f"),
-                            new Application(
-                                new Variable("f"),
-                                new Application(
-                                    new Variable("f"),
-                                    new Application(
-                                        new Variable("f"),
-                                        new Application(
-                                            new Variable("f"),
-                                            new Application(
-                                                new Variable("f"),
-                                                new Application(
-                                                    new Variable("f"),
-                                                    new Application(
-                                                        new Variable("f"),
-                                                        new Variable("x")
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            ),
-        });
 }
