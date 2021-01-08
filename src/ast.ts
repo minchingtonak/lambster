@@ -43,7 +43,7 @@ export class BindingStmt {
 export enum CommandType {
     ENV,
     UNBIND,
-    HELP
+    HELP,
 }
 
 export class CommandStmt {
@@ -62,7 +62,7 @@ export class CommandStmt {
 
 export abstract class Term {
     abstract accept<T>(visitor: TermVisitor<T>): T;
-    abstract rename(new_name: string, root: Abstraction): void;
+    abstract rename(new_name: string, root_id: number): void;
     abstract getAllBoundVarNames(): Set<string>;
     abstract getAllBoundVars(): Variable[];
     parent: Term;
@@ -70,17 +70,19 @@ export abstract class Term {
 
 export class Abstraction extends Term {
     name: string;
+    id: number;
     body: Term;
 
-    constructor(name: string, body: Term) {
+    constructor(name: string, body: Term, id: number = -1) {
         super();
         this.name = name;
         this.body = body;
+        this.id = id;
         body.parent = this;
     }
 
     alphaReduce(new_name: string) {
-        this.rename(new_name, this);
+        this.rename(new_name, this.id);
     }
 
     betaReduce(argument: Term, application_parent: Term): Term {
@@ -105,9 +107,9 @@ export class Abstraction extends Term {
         return this.body;
     }
 
-    rename(new_name: string, root: Abstraction) {
-        this.body.rename(new_name, root);
-        if (this === root) this.name = new_name;
+    rename(new_name: string, root_id: number) {
+        this.body.rename(new_name, root_id);
+        if (this.id === root_id) this.name = new_name;
     }
 
     getBoundVars(): Variable[] {
@@ -126,7 +128,7 @@ export class Abstraction extends Term {
         return this.getNames(true);
     }
 
-    private getVariables(find_all = false): Variable[] {
+    private getVariables(find_all: boolean = false): Variable[] {
         const vars: Variable[] = [];
         this.findBoundVariables(
             this,
@@ -138,7 +140,7 @@ export class Abstraction extends Term {
         return vars;
     }
 
-    private getNames(find_all = false): Set<string> {
+    private getNames(find_all: boolean = false): Set<string> {
         const names: Set<string> = new Set<string>();
         this.findBoundVariables(
             this,
@@ -161,8 +163,7 @@ export class Abstraction extends Term {
             this.findBoundVariables(current.func, accumulator, find_all);
             this.findBoundVariables(current.argument, accumulator, find_all);
         } else if (current instanceof Variable) {
-            if (current.getParentAbstraction() === this || (find_all && !current.isFreeVar()))
-                accumulator(current);
+            if (current.id === this.id || (find_all && !current.isFreeVar())) accumulator(current);
         }
     }
 
@@ -182,9 +183,9 @@ export class Application extends Term {
         func.parent = argument.parent = this;
     }
 
-    rename(new_name: string, root: Abstraction) {
-        this.func.rename(new_name, root);
-        this.argument.rename(new_name, root);
+    rename(new_name: string, root_id: number) {
+        this.func.rename(new_name, root_id);
+        this.argument.rename(new_name, root_id);
     }
 
     getAllBoundVars(): Variable[] {
@@ -210,38 +211,35 @@ export class Application extends Term {
 
 export class Variable extends Term {
     name: string;
+    id: number;
     private free_renamed: boolean = false;
-    private is_free?: boolean;
 
-
-    constructor(name: string) {
+    constructor(name: string, id: number = -1) {
         super();
         this.name = name;
+        this.id = id;
     }
 
     getParentAbstraction(): Abstraction {
-        if (this.is_free) return null;
         let current: Term = this.parent;
         while (current) {
-            if (current instanceof Abstraction && this.name === current.name) return current;
+            if (current instanceof Abstraction && this.id == current.id) return current;
             current = current.parent;
         }
         return null;
     }
 
-    rename(new_name: string, root: Abstraction) {
-        if (this.getParentAbstraction() === root) this.name = new_name;
+    rename(new_name: string, root_id: number) {
+        if (this.id === root_id) this.name = new_name;
     }
 
-    renameFreeVar(new_name: string) {
+    renameFree(new_name: string) {
         this.free_renamed = true;
         this.name = new_name;
     }
 
     isFreeVar(): boolean {
-        return this.is_free === undefined
-            ? (this.is_free = this.getParentAbstraction() === null)
-            : this.is_free;
+        return !this.id;
     }
 
     wasFreeRenamed(): boolean {

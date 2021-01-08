@@ -13,11 +13,40 @@ import {
 } from "./ast";
 import Logger, { ParseError } from "./logger";
 
+class AbstractionIdList {
+    private counter: number = 1;
+    private ids: { [key: string]: number[] } = {};
+
+    private nextId(): number {
+        return this.counter++;
+    }
+
+    push(name: string) {
+        if (!(name in this.ids)) this.ids[name] = [];
+        this.ids[name].push(this.nextId());
+    }
+
+    pop(name: string) {
+        this.ids[name].pop();
+        if (this.ids[name].length === 0) delete this.ids[name];
+    }
+
+    get(name: string) {
+        return this.ids[name][this.ids[name].length - 1];
+    }
+
+    has(name: string) {
+        return name in this.ids;
+    }
+}
+
 export class Parser {
     private logger: Logger;
 
     private tokens: Token[];
     private current: number = 0;
+
+    private idList: AbstractionIdList = new AbstractionIdList();
 
     constructor(tokens: Token[], logger: Logger) {
         this.tokens = tokens;
@@ -111,19 +140,29 @@ export class Parser {
                 "Expected at least one identifier in abstraction definition."
             ).lexeme
         );
-        while (this.peek().type === TokenType.IDENTIFIER) {
-            idents.push(this.peek().lexeme);
-            this.advance();
-        }
+
+        while (this.peek().type === TokenType.IDENTIFIER) idents.push(this.advance().lexeme);
+
         this.consume(
             TokenType.DOT,
             `Expected dot after abstraction declaration, got '${this.peek().lexeme}'.`
         );
-        idents = idents.reverse();
-        let abs: Abstraction = new Abstraction(idents[0], this.term());
-        idents.slice(1).forEach(ident => {
-            abs = new Abstraction(ident, abs);
+
+        // Give each abstraction its own id
+        idents.forEach(ident => {
+            this.idList.push(ident);
         });
+
+        // Construct nested abstraction from the innermost out
+        const reversed: string[] = idents.reverse(),
+            innermost: string = reversed[0];
+        let abs: Abstraction = new Abstraction(innermost, this.term(), this.idList.get(innermost));
+        this.idList.pop(innermost);
+        reversed.slice(1).forEach(ident => {
+            abs = new Abstraction(ident, abs, this.idList.get(ident));
+            this.idList.pop(ident);
+        });
+
         return abs;
     }
 
@@ -148,7 +187,10 @@ export class Parser {
             return term;
         }
 
-        if (this.match(TokenType.IDENTIFIER)) return new Variable(this.previous().lexeme);
+        if (this.match(TokenType.IDENTIFIER)) {
+            const name: string = this.previous().lexeme;
+            return new Variable(name, this.idList.has(name) ? this.idList.get(name) : 0);
+        }
 
         if (this.match(TokenType.LAMBDA)) return this.abstraction();
 
