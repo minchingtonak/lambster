@@ -1,6 +1,6 @@
 import * as chai from "chai";
 import { traverseAst } from "./util";
-import { printTerm } from "../src/termprinter";
+import {stringify } from "../src/termstringifier";
 import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";
 import { Application, Abstraction, Variable, Term } from "../src/ast";
@@ -11,13 +11,13 @@ const expect = chai.expect;
 describe("Parser tests", () => {
     it("Basic parse test", () => {
         expect(
-            printTerm(new Parser(new Lexer("(Lx.x)(Ly.y)", logger).lexTokens(), logger).parseTerm())
+            stringify(new Parser(new Lexer("(Lx.x)(Ly.y)", logger).lexTokens(), logger).parseTerm())
         ).to.equal("((λx. x) (λy. y))");
     });
 
     it("Parse test 2", () => {
         expect(
-            printTerm(
+            stringify(
                 new Parser(
                     new Lexer("((λx. (x x)) (λy. (y y)))", logger).lexTokens(),
                     logger
@@ -28,7 +28,7 @@ describe("Parser tests", () => {
 
     it("Parse test 3", () => {
         expect(
-            printTerm(
+            stringify(
                 new Parser(new Lexer("(Lx.x Ly.y y)", logger).lexTokens(), logger).parseTerm()
             )
         ).to.equal("(λx. (x (λy. (y y))))");
@@ -36,7 +36,7 @@ describe("Parser tests", () => {
 
     it("Associativity test 1", () => {
         expect(
-            printTerm(new Parser(new Lexer("Lx.x x x x", logger).lexTokens(), logger).parseTerm())
+            stringify(new Parser(new Lexer("Lx.x x x x", logger).lexTokens(), logger).parseTerm())
         ).to.equal("(λx. (((x x) x) x))");
     });
 

@@ -12,7 +12,7 @@ import {
 } from "./ast";
 import { Reducer, RecursionDepthError } from "./reducer";
 import { BindingResolver } from "./bindingresolver";
-import { printTerm } from "./termprinter";
+import { stringify } from "./termstringifier";
 import { hashTermStructure } from "./termhasher";
 import { InterpreterOptions } from "./types";
 import { Lexer } from "./lexer";
@@ -33,9 +33,6 @@ export class Interpreter implements StmtVisitor<void> {
             s_set: Set<string> = this.structure_hashes[s_hash];
 
         s_set.delete(name);
-
-        // if (set.size === 0) delete this.hashes[hash];
-        // if (s_set.size === 0) delete this.structure_hashes[s_hash];
     }
 
     private start_index: number;
@@ -45,10 +42,9 @@ export class Interpreter implements StmtVisitor<void> {
             const parser: Parser = new Parser(),
                 parsed_terms: { [key: string]: Term } = {};
             Object.keys(dict).forEach(key => {
-                const subkeys: string[] = key.split("|");
-
                 parser.setTokens(new Lexer(dict[key]).lexTokens());
-                const term: Term = parser.parseTerm();
+                const term: Term = parser.parseTerm(),
+                    subkeys: string[] = key.split("|");
                 subkeys.forEach(subkey => {
                     this.addHash(term, subkey);
                     parsed_terms[subkey] = term;
@@ -167,14 +163,14 @@ export class Interpreter implements StmtVisitor<void> {
     }
 
     private eval(term: Term, binding_name?: string): Term {
-        this.logger.vlog(`λ > ${printTerm(term)}`);
+        this.logger.vlog(`λ > ${stringify(term)}`);
         try {
             const reduct: Term = new Reducer(this.rename_free_vars, this.logger).reduceTerm(
                 this.resolver.resolveTerm(term)
             );
             this.logger.vvlog();
-            if (binding_name) this.logger.log(`>>> ${binding_name} = ${printTerm(reduct)}`);
-            else this.logger.log(`>>> ${printTerm(reduct)}`);
+            if (binding_name) this.logger.log(`>>> ${binding_name} = ${stringify(reduct)}`);
+            else this.logger.log(`>>> ${stringify(reduct)}`);
             const s_hash: number = hashTermStructure(reduct);
             if (s_hash in this.structure_hashes)
                 this.logger.log(
@@ -189,7 +185,7 @@ export class Interpreter implements StmtVisitor<void> {
 
     private printBindings() {
         Object.entries(this.bindings).forEach(binding => {
-            this.logger.log(`${binding[0]}:\t${printTerm(binding[1])}`);
+            this.logger.log(`${binding[0]}:\t${stringify(binding[1])}`);
         });
     }
 

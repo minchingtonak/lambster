@@ -1,5 +1,5 @@
 import * as chai from "chai";
-import { printTerm } from "../src/termprinter";
+import { stringify } from "../src/termstringifier";
 import { Reducer } from "../src/reducer";
 import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";
@@ -11,7 +11,7 @@ const expect = chai.expect;
 describe("Reduction tests", () => {
 
     function expectTreeToBe(tree: Term, expected: string) {
-        expect(printTerm(tree)).to.equal(expected);
+        expect(stringify(tree)).to.equal(expected);
     }
 
     function expectTreeToReduceTo(tree: Term, expected: string, rename_free: boolean = false) {
