@@ -69,11 +69,11 @@ export abstract class Term {
 }
 
 export class Abstraction extends Term {
+    readonly id: number;
     name: string;
-    id: number;
     body: Term;
 
-    constructor(name: string, body: Term, id: number = -1) {
+    constructor(name: string, body: Term, id: number) {
         super();
         this.name = name;
         this.body = body;
@@ -210,11 +210,11 @@ export class Application extends Term {
 }
 
 export class Variable extends Term {
+    readonly id: number;
     name: string;
-    id: number;
     private free_renamed: boolean = false;
 
-    constructor(name: string, id: number = -1) {
+    constructor(name: string, id: number) {
         super();
         this.name = name;
         this.id = id;
