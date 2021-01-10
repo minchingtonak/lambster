@@ -36,7 +36,7 @@ export function traverseTerm(
         vf?: (v: Variable) => void;
     }
 ) {
-    transformTerm(root, {
+    transformTerm<void>(root, {
         absf: abs => {
             if (funcs.absf !== undefined) funcs.absf(abs);
         },

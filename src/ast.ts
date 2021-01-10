@@ -1,4 +1,5 @@
-import { clone } from "./termcloner";
+import { timeStamp } from "console";
+import { clone, traverseTerm } from "./utils";
 
 export interface TermVisitor<T> {
     visitAbstraction(abstraction: Abstraction): T;
@@ -113,19 +114,38 @@ export class Abstraction extends Term {
     }
 
     getBoundVars(): Variable[] {
-        return finder.findVariables(this, false);
+        return this.findVariables(false, false);
     }
 
     getAllBoundVars(): Variable[] {
-        return finder.findVariables(this, true);
+        return this.findVariables(false, true);
     }
 
     getBoundVarNames(): Set<string> {
-        return finder.findNames(this, false);
+        return this.findVariables(true, false);
     }
 
     getAllBoundVarNames(): Set<string> {
-        return finder.findNames(this, true);
+        return this.findVariables(true, true);
+    }
+
+    // TODO: figure out how to make return type based on value of names
+    private findVariables<T extends Set<string> | Variable[]>(
+        names: boolean,
+        find_all: boolean
+    ): T {
+        const container = names ? new Set<string>() : new Array<Variable>(),
+            cond: (v: Variable) => boolean = v => v.id === this.id || (find_all && !v.isFreeVar()),
+            accumulator: (v: Variable) => void =
+                container instanceof Set
+                    ? v => {
+                          if (cond(v)) container.add(v.name);
+                      }
+                    : v => {
+                          if (cond(v)) container.push(v);
+                      };
+        traverseTerm(this, { vf: accumulator });
+        return container as T;
     }
 
     accept<T>(visitor: TermVisitor<T>): T {
@@ -150,19 +170,14 @@ export class Application extends Term {
     }
 
     getAllBoundVars(): Variable[] {
-        const vars: Variable[] = this.func.getAllBoundVars();
-        this.argument.getAllBoundVars().forEach(v => {
-            vars.push(v);
-        });
-        return vars;
+        return [...this.func.getAllBoundVars(), ...this.argument.getAllBoundVars()];
     }
 
     getAllBoundVarNames(): Set<string> {
-        const funcnames: Set<string> = this.func.getAllBoundVarNames();
-        this.argument.getAllBoundVarNames().forEach(name => {
-            funcnames.add(name);
-        });
-        return funcnames;
+        return new Set<string>([
+            ...this.func.getAllBoundVarNames(),
+            ...this.argument.getAllBoundVarNames(),
+        ]);
     }
 
     accept<T>(visitor: TermVisitor<T>): T {
@@ -219,53 +234,3 @@ export class Variable extends Term {
         return visitor.visitVariable(this);
     }
 }
-
-class VariableFinder implements TermVisitor<void> {
-    private func: (v: Variable) => void;
-    private find_all: boolean;
-    private id: number;
-
-    findVariables(start: Abstraction, find_all: boolean): Variable[] {
-        const vars: Variable[] = [];
-        this.find(
-            start,
-            (v: Variable) => {
-                vars.push(v);
-            },
-            find_all
-        );
-        return vars;
-    }
-
-    findNames(start: Abstraction, find_all: boolean): Set<string> {
-        const names: Set<string> = new Set<string>();
-        this.find(
-            start,
-            (v: Variable) => {
-                names.add(v.name);
-            },
-            find_all
-        );
-        return names;
-    }
-
-    private find(abs: Abstraction, func: (v: Variable) => void, find_all: boolean) {
-        this.func = func;
-        this.find_all = find_all;
-        this.id = abs.id;
-        abs.accept(this);
-    }
-
-    visitAbstraction(abstraction: Abstraction) {
-        abstraction.body.accept(this);
-    }
-    visitApplication(application: Application) {
-        application.func.accept(this);
-        application.argument.accept(this);
-    }
-    visitVariable(variable: Variable) {
-        if (variable.id === this.id || (this.find_all && !variable.isFreeVar()))
-            this.func(variable);
-    }
-}
-const finder: VariableFinder = new VariableFinder();
