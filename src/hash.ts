@@ -1,8 +1,15 @@
 import { Term } from "./ast";
 import { transformTerm } from "./utils";
 
-// https://stackoverflow.com/a/7616484/13334328
-function strhash(str: string): number {
+declare global {
+    interface String {
+        hash(): number;
+    }
+}
+
+String.prototype.hash = function (): number {
+    const str = this as String;
+    // https://stackoverflow.com/a/7616484/13334328
     var hash: number = 0,
         i: number,
         chr: number;
@@ -12,7 +19,7 @@ function strhash(str: string): number {
         hash |= 0; // Convert to 32bit integer
     }
     return hash;
-}
+};
 
 // https://stackoverflow.com/a/47593316/13334328
 function xmur3(str: string): () => number {
@@ -50,10 +57,10 @@ function rng(seed: string): () => number {
 export function hash(term: Term): number {
     const rand = rng("c4lcvlv5");
     return transformTerm(term, {
-        absf: (abs, body) => rand() ^ 7118896751009 ^ (27868593065317 * strhash(abs.name)) ^ body,
+        absf: (abs, body) => rand() ^ 7118896751009 ^ (27868593065317 * abs.name.hash()) ^ body,
         appf: (_, func, arg) =>
             rand() ^ 14367883950617 ^ (19247925932227 * func) ^ (28518786250657 * arg),
-        vf: v => rand() ^ 1077274700101 ^ (18031070658737 * strhash(v.name)),
+        vf: v => rand() ^ 1077274700101 ^ (18031070658737 * v.name.hash()),
     });
 }
 

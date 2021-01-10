@@ -1,12 +1,25 @@
 import { Abstraction, Application, Term, Variable } from "./ast";
 
-export function joinSet<T>(set: Set<T>, separator: string) {
-    let joined: string = "";
-    set.forEach(val => {
-        joined += `${val}${separator}`;
-    });
-    return joined.substr(0, joined.length - separator.length);
+declare global {
+    interface Set<T> {
+        join<T>(sepatator: string): string;
+    }
 }
+
+Set.prototype.join = function <T>(separator: string): string {
+    const set = this as Set<T>;
+    let joined: string = "",
+        first: boolean = true;
+    set.forEach(val => {
+        if (first) {
+            joined += `${val}`;
+            first = false;
+            return;
+        }
+        joined += `${separator}${val}`;
+    });
+    return joined;
+};
 
 export function transformTerm<T>(
     root: Term,

@@ -1,15 +1,4 @@
-import {
-    Stmt,
-    Term,
-    Abstraction,
-    Variable,
-    Application,
-    StmtVisitor,
-    TermStmt,
-    BindingStmt,
-    CommandStmt,
-    CommandType,
-} from "./ast";
+import { Stmt, Term, StmtVisitor, TermStmt, BindingStmt, CommandStmt, CommandType } from "./ast";
 import { Reducer, RecursionDepthError } from "./reducer";
 import { BindingResolver } from "./bindingresolver";
 import { stringify } from "./utils";
@@ -18,12 +7,12 @@ import { InterpreterOptions } from "./types";
 import { Lexer } from "./lexer";
 import { Parser } from "./parser";
 import Logger, { Verbosity } from "./logger";
-import { joinSet } from "./utils";
 
 export class Interpreter implements StmtVisitor<void> {
     private structure_hashes: { [key: number]: Set<string> } = {};
 
     private addHash(term: Term, name: string) {
+        console.log(`Adding hash for ${name}`);
         const s_hash: number = structureHash(term);
         if (!(s_hash in this.structure_hashes)) this.structure_hashes[s_hash] = new Set<string>();
         this.structure_hashes[s_hash].add(name);
@@ -173,9 +162,7 @@ export class Interpreter implements StmtVisitor<void> {
             else this.logger.log(`>>> ${stringify(reduct)}`);
             const s_hash: number = structureHash(reduct);
             if (s_hash in this.structure_hashes)
-                this.logger.log(
-                    `    ↳ equivalent to: ${joinSet(this.structure_hashes[s_hash], ", ")}`
-                );
+                this.logger.log(`    ↳ equivalent to: ${this.structure_hashes[s_hash].join(", ")}`);
             this.logger.vlog();
             return reduct;
         } catch (e) {
