@@ -1,7 +1,7 @@
 import * as chai from "chai";
-import { stringify } from "../src/termstringifier";
 import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";
+import { stringify } from "../src/utils";
 
 const expect = chai.expect;
 

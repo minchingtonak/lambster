@@ -1,6 +1,5 @@
 import { TermVisitor, Term, Abstraction, Application, Variable } from "./ast";
-import { clone } from "./termcloner";
-import { stringify } from "./termstringifier";
+import { clone, stringify } from "./utils";
 import Logger from "./logger";
 
 export class RecursionDepthError extends Error {

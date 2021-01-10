@@ -1,5 +1,5 @@
 import * as chai from "chai";
-import { stringify } from "../src/termstringifier";
+import { stringify } from "../src/utils";
 import { Reducer } from "../src/reducer";
 import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";

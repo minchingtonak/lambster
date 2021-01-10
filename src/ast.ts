@@ -113,58 +113,19 @@ export class Abstraction extends Term {
     }
 
     getBoundVars(): Variable[] {
-        return this.getVariables();
+        return finder.findVariables(this, false);
     }
 
     getAllBoundVars(): Variable[] {
-        return this.getVariables(true);
+        return finder.findVariables(this, true);
     }
 
     getBoundVarNames(): Set<string> {
-        return this.getNames();
+        return finder.findNames(this, false);
     }
 
     getAllBoundVarNames(): Set<string> {
-        return this.getNames(true);
-    }
-
-    private getVariables(find_all: boolean = false): Variable[] {
-        const vars: Variable[] = [];
-        this.findBoundVariables(
-            this,
-            (v: Variable) => {
-                vars.push(v);
-            },
-            find_all
-        );
-        return vars;
-    }
-
-    private getNames(find_all: boolean = false): Set<string> {
-        const names: Set<string> = new Set<string>();
-        this.findBoundVariables(
-            this,
-            (v: Variable) => {
-                names.add(v.name);
-            },
-            find_all
-        );
-        return names;
-    }
-
-    private findBoundVariables(
-        current: Term,
-        accumulator: (val: Variable) => void,
-        find_all: boolean
-    ) {
-        if (current instanceof Abstraction) {
-            this.findBoundVariables(current.body, accumulator, find_all);
-        } else if (current instanceof Application) {
-            this.findBoundVariables(current.func, accumulator, find_all);
-            this.findBoundVariables(current.argument, accumulator, find_all);
-        } else if (current instanceof Variable) {
-            if (current.id === this.id || (find_all && !current.isFreeVar())) accumulator(current);
-        }
+        return finder.findNames(this, true);
     }
 
     accept<T>(visitor: TermVisitor<T>): T {
@@ -233,13 +194,13 @@ export class Variable extends Term {
         if (this.id === root_id) this.name = new_name;
     }
 
+    isFreeVar(): boolean {
+        return !this.id;
+    }
+
     renameFree(new_name: string) {
         this.free_renamed = true;
         this.name = new_name;
-    }
-
-    isFreeVar(): boolean {
-        return !this.id;
     }
 
     wasFreeRenamed(): boolean {
@@ -258,3 +219,53 @@ export class Variable extends Term {
         return visitor.visitVariable(this);
     }
 }
+
+class VariableFinder implements TermVisitor<void> {
+    private func: (v: Variable) => void;
+    private find_all: boolean;
+    private id: number;
+
+    findVariables(start: Abstraction, find_all: boolean): Variable[] {
+        const vars: Variable[] = [];
+        this.find(
+            start,
+            (v: Variable) => {
+                vars.push(v);
+            },
+            find_all
+        );
+        return vars;
+    }
+
+    findNames(start: Abstraction, find_all: boolean): Set<string> {
+        const names: Set<string> = new Set<string>();
+        this.find(
+            start,
+            (v: Variable) => {
+                names.add(v.name);
+            },
+            find_all
+        );
+        return names;
+    }
+
+    private find(abs: Abstraction, func: (v: Variable) => void, find_all: boolean) {
+        this.func = func;
+        this.find_all = find_all;
+        this.id = abs.id;
+        abs.accept(this);
+    }
+
+    visitAbstraction(abstraction: Abstraction) {
+        abstraction.body.accept(this);
+    }
+    visitApplication(application: Application) {
+        application.func.accept(this);
+        application.argument.accept(this);
+    }
+    visitVariable(variable: Variable) {
+        if (variable.id === this.id || (this.find_all && !variable.isFreeVar()))
+            this.func(variable);
+    }
+}
+const finder: VariableFinder = new VariableFinder();

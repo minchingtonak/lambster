@@ -12,8 +12,8 @@ import {
 } from "./ast";
 import { Reducer, RecursionDepthError } from "./reducer";
 import { BindingResolver } from "./bindingresolver";
-import { stringify } from "./termstringifier";
-import { hashTermStructure } from "./termhasher";
+import { stringify } from "./utils";
+import { structureHash } from "./hash";
 import { InterpreterOptions } from "./types";
 import { Lexer } from "./lexer";
 import { Parser } from "./parser";
@@ -24,12 +24,12 @@ export class Interpreter implements StmtVisitor<void> {
     private structure_hashes: { [key: number]: Set<string> } = {};
 
     private addHash(term: Term, name: string) {
-        const s_hash: number = hashTermStructure(term);
+        const s_hash: number = structureHash(term);
         if (!(s_hash in this.structure_hashes)) this.structure_hashes[s_hash] = new Set<string>();
         this.structure_hashes[s_hash].add(name);
     }
     private deleteHash(term: Term, name: string) {
-        const s_hash: number = hashTermStructure(term),
+        const s_hash: number = structureHash(term),
             s_set: Set<string> = this.structure_hashes[s_hash];
 
         s_set.delete(name);
@@ -171,7 +171,7 @@ export class Interpreter implements StmtVisitor<void> {
             this.logger.vvlog();
             if (binding_name) this.logger.log(`>>> ${binding_name} = ${stringify(reduct)}`);
             else this.logger.log(`>>> ${stringify(reduct)}`);
-            const s_hash: number = hashTermStructure(reduct);
+            const s_hash: number = structureHash(reduct);
             if (s_hash in this.structure_hashes)
                 this.logger.log(
                     `    ↳ equivalent to: ${joinSet(this.structure_hashes[s_hash], ", ")}`

@@ -2,9 +2,8 @@ import * as chai from "chai";
 import { Term, Application, Abstraction, Variable } from "../src/ast";
 import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";
-import { traverseAst } from "./util";
-import { logger } from "./util";
-import { clone } from "../src/termcloner";
+import { traverseAst, logger } from "./util";
+import { clone } from "../src/utils";
 
 const expect = chai.expect;
 

@@ -2,7 +2,7 @@ import * as chai from "chai";
 import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";
 import { Term } from "../src/ast";
-import { hashTerm, hashTermStructure } from "../src/termhasher";
+import { hash as hashTerm, structureHash as hashTermStructure } from "../src/hash";
 import { logger } from "./util";
 
 const expect = chai.expect;

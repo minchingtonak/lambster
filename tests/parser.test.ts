@@ -1,6 +1,6 @@
 import * as chai from "chai";
 import { traverseAst } from "./util";
-import {stringify } from "../src/termstringifier";
+import { stringify } from "../src/utils";
 import { Parser } from "../src/parser";
 import { Lexer } from "../src/lexer";
 import { Application, Abstraction, Variable, Term } from "../src/ast";
