@@ -91,8 +91,6 @@ export class Abstraction extends Term {
                     } else {
                         rep.parent.argument = clone(argument, rep.parent);
                     }
-                } else {
-                    throw new Error("something is very wrong");
                 }
             });
         }

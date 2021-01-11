@@ -4,7 +4,7 @@ import { Verbosity } from "./logger";
 import * as readline from "readline";
 import * as fs from "fs";
 
-module LambdaCalculus {
+module LambsterCLI {
     const reader = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
@@ -111,4 +111,4 @@ module LambdaCalculus {
     }
 }
 
-LambdaCalculus.main();
+LambsterCLI.main();
