@@ -24,7 +24,7 @@ describe("Reduction tests", () => {
             logger
         ).parseTerm();
 
-        tree.rename("z", ((tree as Application).func as Abstraction).id);
+        tree._rename("z", "z".hash(), ((tree as Application).func as Abstraction).id);
         expectTreeToBe(tree, "((λz. z) (λy. y))");
 
         ((tree as Application).argument as Abstraction).alphaReduce("w");

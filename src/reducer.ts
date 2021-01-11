@@ -57,7 +57,6 @@ export class Reducer implements TermVisitor<Term> {
                 .getAllBoundVars()
                 .filter(v => conflicts.has(v.name))
                 .map(v => v.getParentAbstraction())
-                .filter(v => v !== null) // TODO: this filter may not be necessary
         );
         if (conflicting_abs.size) this.logger.vvlog();
         conflicting_abs.forEach(abs => {

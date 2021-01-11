@@ -1,5 +1,5 @@
-import { timeStamp } from "console";
 import { clone, traverseTerm } from "./utils";
+import "./hash";
 
 export interface TermVisitor<T> {
     visitAbstraction(abstraction: Abstraction): T;
@@ -63,27 +63,27 @@ export class CommandStmt {
 
 export abstract class Term {
     abstract accept<T>(visitor: TermVisitor<T>): T;
-    abstract rename(new_name: string, root_id: number): void;
+    abstract _rename(new_name: string, new_id: number, root_id: number): void;
     abstract getAllBoundVarNames(): Set<string>;
     abstract getAllBoundVars(): Variable[];
     parent: Term;
 }
 
 export class Abstraction extends Term {
-    readonly id: number;
     name: string;
+    id: number;
     body: Term;
 
-    constructor(name: string, body: Term, id: number) {
+    constructor(name: string, id: number, body: Term) {
         super();
         this.name = name;
-        this.body = body;
         this.id = id;
+        this.body = body;
         body.parent = this;
     }
 
     alphaReduce(new_name: string) {
-        this.rename(new_name, this.id);
+        this._rename(new_name, new_name.hash(), this.id);
     }
 
     betaReduce(argument: Term, application_parent: Term): Term {
@@ -108,9 +108,9 @@ export class Abstraction extends Term {
         return this.body;
     }
 
-    rename(new_name: string, root_id: number) {
-        this.body.rename(new_name, root_id);
-        if (this.id === root_id) this.name = new_name;
+    _rename(new_name: string, new_id: number, root_id: number) {
+        this.body._rename(new_name, new_id, root_id);
+        if (this.id === root_id) (this.name = new_name), (this.id = new_id);
     }
 
     getBoundVars(): Variable[] {
@@ -136,14 +136,16 @@ export class Abstraction extends Term {
     ): T {
         const container = names ? new Set<string>() : new Array<Variable>(),
             cond: (v: Variable) => boolean = v => v.id === this.id || (find_all && !v.isFreeVar()),
-            accumulator: (v: Variable) => void =
+            accumulator =
+                // TODO: an optimization that would avoid having to do this check and having the change to traverseTerm would be changing an abstraction's id when it's alpha reduced
                 container instanceof Set
-                    ? v => {
+                    ? (v: Variable) => {
                           if (cond(v)) container.add(v.name);
                       }
-                    : v => {
+                    : (v: Variable) => {
                           if (cond(v)) container.push(v);
                       };
+
         traverseTerm(this, { vf: accumulator });
         return container as T;
     }
@@ -164,9 +166,9 @@ export class Application extends Term {
         func.parent = argument.parent = this;
     }
 
-    rename(new_name: string, root_id: number) {
-        this.func.rename(new_name, root_id);
-        this.argument.rename(new_name, root_id);
+    _rename(new_name: string, new_id: number, root_id: number) {
+        this.func._rename(new_name, new_id, root_id);
+        this.argument._rename(new_name, new_id, root_id);
     }
 
     getAllBoundVars(): Variable[] {
@@ -186,7 +188,7 @@ export class Application extends Term {
 }
 
 export class Variable extends Term {
-    readonly id: number;
+    id: number;
     name: string;
     private free_renamed: boolean = false;
 
@@ -194,6 +196,13 @@ export class Variable extends Term {
         super();
         this.name = name;
         this.id = id;
+    }
+
+    static fromOther(v: Variable): Variable {
+        const { id, name, free_renamed } = v,
+            copy = new this(name, id);
+        copy.free_renamed = free_renamed;
+        return copy;
     }
 
     getParentAbstraction(): Abstraction {
@@ -205,8 +214,8 @@ export class Variable extends Term {
         return null;
     }
 
-    rename(new_name: string, root_id: number) {
-        if (this.id === root_id) this.name = new_name;
+    _rename(new_name: string, new_id: number, root_id: number) {
+        if (this.id === root_id) (this.name = new_name), (this.id = new_id);
     }
 
     isFreeVar(): boolean {

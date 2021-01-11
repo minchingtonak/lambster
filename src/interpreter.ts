@@ -12,7 +12,6 @@ export class Interpreter implements StmtVisitor<void> {
     private structure_hashes: { [key: number]: Set<string> } = {};
 
     private addHash(term: Term, name: string) {
-        console.log(`Adding hash for ${name}`);
         const s_hash: number = structureHash(term);
         if (!(s_hash in this.structure_hashes)) this.structure_hashes[s_hash] = new Set<string>();
         this.structure_hashes[s_hash].add(name);

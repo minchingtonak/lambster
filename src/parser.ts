@@ -170,10 +170,10 @@ export class Parser {
         // Construct nested abstraction from the innermost out
         const reversed: string[] = idents.reverse(),
             innermost: string = reversed[0];
-        let abs: Abstraction = new Abstraction(innermost, this.term(), this.idList.get(innermost));
+        let abs: Abstraction = new Abstraction(innermost, this.idList.get(innermost), this.term());
         this.idList.pop(innermost);
         reversed.slice(1).forEach(ident => {
-            abs = new Abstraction(ident, abs, this.idList.get(ident));
+            abs = new Abstraction(ident, this.idList.get(ident), abs);
             this.idList.pop(ident);
         });
 

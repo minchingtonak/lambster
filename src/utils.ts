@@ -50,15 +50,9 @@ export function traverseTerm(
     }
 ) {
     transformTerm<void>(root, {
-        absf: abs => {
-            if (funcs.absf !== undefined) funcs.absf(abs);
-        },
-        appf: app => {
-            if (funcs.appf !== undefined) funcs.appf(app);
-        },
-        vf: v => {
-            if (funcs.vf !== undefined) funcs.vf(v);
-        },
+        absf: abs => (funcs.absf !== undefined ? funcs.absf(abs) : void {}),
+        appf: app => (funcs.appf !== undefined ? funcs.appf(app) : void {}),
+        vf: v => (funcs.vf !== undefined ? funcs.vf(v) : void {}),
     });
 }
 
@@ -71,17 +65,10 @@ export function stringify(term: Term): string {
 }
 
 export function clone(term: Term, new_parent: Term = null) {
-    function copyAtomicMembers(src: Term, dest: Term): Term {
-        Object.keys(src).forEach(key => {
-            if (typeof src[key] !== "object") dest[key] = src[key];
-        });
-        return dest;
-    }
-
     const cloned: Term = transformTerm<Term>(term, {
-        absf: (abs, body) => copyAtomicMembers(abs, new Abstraction(abs.name, body, abs.id)),
-        appf: (app, func, arg) => copyAtomicMembers(app, new Application(func, arg)),
-        vf: v => copyAtomicMembers(v, new Variable(v.name, v.id)),
+        absf: (abs, body) => new Abstraction(abs.name, abs.id, body),
+        appf: (_, func, arg) => new Application(func, arg),
+        vf: v => Variable.fromOther(v),
     });
     cloned.parent = new_parent;
     return cloned;
