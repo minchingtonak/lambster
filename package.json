@@ -3,19 +3,19 @@
     "version": "1.0.4",
     "description": "Lambda calculus interpreter library and CLI.",
     "type": "commonjs",
-    "main": "dist/src/index.js",
-    "types": "dist/src/index.d.ts",
-    "module": "dist/src/index.js",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "module": "./dist/index.js",
     "sideEffects": false,
     "scripts": {
         "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/cli.ts",
         "test": "mocha --require ts-node/register ./tests/**/*.test.ts",
-        "build": "tsc -p .",
+        "build": "tsc -p . && rm ./env/bin/lambster && npm link --force",
         "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
         "clean": "rm -rf ./dist"
     },
     "bin": {
-        "lambster": "dist/src/cli.js"
+        "lambster": "./dist/cli.js"
     },
     "repository": {
         "type": "git",
