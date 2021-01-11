@@ -70,15 +70,8 @@ export abstract class Term {
 }
 
 export class Abstraction extends Term {
-    name: string;
-    id: number;
-    body: Term;
-
-    constructor(name: string, id: number, body: Term) {
+    constructor(public name: string, public id: number, public body: Term) {
         super();
-        this.name = name;
-        this.id = id;
-        this.body = body;
         body.parent = this;
     }
 
@@ -156,10 +149,7 @@ export class Abstraction extends Term {
 }
 
 export class Application extends Term {
-    func: Term;
-    argument: Term;
-
-    constructor(func: Term, argument: Term) {
+    constructor(public func: Term, public argument: Term) {
         super();
         this.func = func;
         this.argument = argument;
@@ -188,14 +178,10 @@ export class Application extends Term {
 }
 
 export class Variable extends Term {
-    id: number;
-    name: string;
     private free_renamed: boolean = false;
 
-    constructor(name: string, id: number) {
+    constructor(public name: string, public id: number) {
         super();
-        this.name = name;
-        this.id = id;
     }
 
     static fromOther(v: Variable): Variable {

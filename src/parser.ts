@@ -45,16 +45,11 @@ class AbstractionIndexList {
 }
 
 export class Parser {
-    private logger: Logger;
-
-    private tokens: Token[];
     private current: number = 0;
 
     private idList: AbstractionIndexList;
 
-    constructor(tokens: Token[] = [], logger: Logger = new Logger(), start_index: number = 1) {
-        this.tokens = tokens;
-        this.logger = logger;
+    constructor(private tokens: Token[] = [], private logger: Logger = new Logger(), start_index: number = 1) {
         this.idList = new AbstractionIndexList(start_index);
     }
 

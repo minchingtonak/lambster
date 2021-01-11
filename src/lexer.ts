@@ -3,9 +3,6 @@ import { TokenType } from "./tokentype";
 import Logger, { LexError } from "./logger";
 
 export class Lexer {
-    private logger: Logger;
-
-    private source: string;
     private tokens: Token[] = [];
 
     private start: number = 0;
@@ -20,10 +17,7 @@ export class Lexer {
         help: TokenType.HELP,
     };
 
-    constructor(source: string = "", logger: Logger = new Logger()) {
-        this.source = source;
-        this.logger = logger;
-    }
+    constructor(private source: string = "", private logger: Logger = new Logger()) {}
 
     lexTokens(): Token[] {
         while (!this.isAtEnd()) {
@@ -123,7 +117,12 @@ export class Lexer {
         this.tokens.push(this.genToken(type, lexeme === "\n" ? "<newline>" : lexeme));
     }
 
-    private genToken(type: TokenType, lexeme: string, eof: boolean = false, newline: boolean = false): Token {
+    private genToken(
+        type: TokenType,
+        lexeme: string,
+        eof: boolean = false,
+        newline: boolean = false
+    ): Token {
         return new Token(
             type,
             lexeme,

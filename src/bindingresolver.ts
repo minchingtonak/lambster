@@ -3,15 +3,9 @@ import { clone, stringify } from "./utils";
 import Logger from "./logger";
 
 export class BindingResolver implements TermVisitor<Term> {
-    private logger: Logger;
-
-    private bindings: { [key: string]: Term };
     private expanded: boolean = false;
 
-    constructor(bindings: { [key: string]: Term }, logger: Logger) {
-        this.bindings = bindings;
-        this.logger = logger;
-    }
+    constructor(private bindings: { [key: string]: Term }, private logger: Logger) {}
 
     resolveTerm(term: Term): Term {
         const resolved: Term = this.resolve(term);

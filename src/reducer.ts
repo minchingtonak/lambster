@@ -9,18 +9,12 @@ export class RecursionDepthError extends Error {
 }
 
 export class Reducer implements TermVisitor<Term> {
-    private logger: Logger;
-
-    private rename_free_vars: boolean;
     private redex: Term;
     private depth: number;
 
     private static MAX_RECURSION_DEPTH: number = 1000;
 
-    constructor(rename_free_vars: boolean, logger: Logger) {
-        this.rename_free_vars = rename_free_vars;
-        this.logger = logger;
-    }
+    constructor(private rename_free_vars: boolean, private logger: Logger) {}
 
     reduceTerm(term: Term): Term {
         this.depth = 0;
