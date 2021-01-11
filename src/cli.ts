@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Interpreter } from "./interpreter";
 import { Verbosity } from "./logger";
+import { version } from "./version";
 import * as readline from "readline";
 import * as fs from "fs";
 
@@ -97,7 +98,7 @@ module LambsterCLI {
             process.exit(0);
         });
         console.log(
-            "lambster: A lambda calculus interpreter\n -- type 'help' for more information"
+            `lambster: A lambda calculus interpreter\nversion ${version} -- type 'help' for more information`
         );
         for (;;) run(await waitForLine("λ> "));
     }

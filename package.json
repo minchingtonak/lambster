@@ -1,6 +1,6 @@
 {
     "name": "lambster",
-    "version": "1.0.4",
+    "version": "1.1.0",
     "description": "Lambda calculus interpreter library and CLI.",
     "type": "commonjs",
     "main": "./dist/index.js",
@@ -10,7 +10,8 @@
     "scripts": {
         "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/cli.ts",
         "test": "mocha --require ts-node/register ./tests/**/*.test.ts",
-        "build": "tsc -p . && rm ./env/bin/lambster && npm link --force",
+        "build": "genversion --es6 --semi src/version.ts && tsc -p .",
+        "link": "rm ./env/bin/lambster && npm link --force",
         "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
         "clean": "rm -rf ./dist"
     },
@@ -45,6 +46,7 @@
         "babel-core": "^6.26.3",
         "babel-register": "^6.26.0",
         "chai": "^4.2.0",
+        "genversion": "^2.2.1",
         "mocha": "^7.1.2",
         "nodemon": "^2.0.3",
         "ts-node": "^8.10.1",
