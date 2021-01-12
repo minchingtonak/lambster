@@ -146,7 +146,7 @@ import { Interpreter, Verbosity, InterpreterOptions } from "lambster";
 
 const interpreter: Interpreter = new Interpreter();
 
-interpreter.interpret("(Ly. y) z");
+interpreter.evaluate("(Ly. y) z");
 // <console output>
 // >>> z
 ```
@@ -173,7 +173,7 @@ const interpreter: Interpreter = new Interpreter({
     }),
 });
 
-interpreter.interpret("(Lx.x x) y");
+interpreter.evaluate("(Lx.x x) y");
 
 console.log(output);
 // <console output>
