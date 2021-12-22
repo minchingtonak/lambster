@@ -1,0 +1,17 @@
+optimization: parse expression with context-awareness so that the parser can link parent nodes automatically (or at least parent abstractions)
+
+in stepbystep mode, print arrows under terms used in reduction
+    Beta reducing 'a' into '(λx. (x w))'
+    (((λx. (λy. (x y))) (λw. (((λx. (x w)) a) w))) b)
+                               ^^^^^^^^^^^ ^
+This (i think) will require every node having a sourcelocation or something like that
+
+generalize lexing and parsing for single word commands
+
+write more unit tests
+
+consider passing source to reportError function instead of keeping as instance -> will save computation in the case that there aren't any errors
+
+possibly parse numbers into church numeral equivalent
+
+Look into refactoring reducer and variableresolver into functional components
