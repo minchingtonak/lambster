@@ -82,6 +82,7 @@ export class Interpreter implements StmtVisitor<void> {
     private rename_free_vars: boolean;
     private logger: Logger;
     private resolver: BindingResolver;
+    private show_equivalence: boolean;
 
     constructor(options?: InterpreterOptions) {
         this.setOptions(options);
@@ -93,6 +94,12 @@ export class Interpreter implements StmtVisitor<void> {
                 ? options.rename_free_vars
                 : this.rename_free_vars
             : this.rename_free_vars || false;
+
+        this.show_equivalence = options
+          ? options.show_equivalent !== undefined
+            ? options.show_equivalent
+            : this.show_equivalence
+          : this.show_equivalence || true;
 
         if (!this.logger) {
             this.logger = new Logger({
@@ -160,7 +167,7 @@ export class Interpreter implements StmtVisitor<void> {
             if (binding_name) this.logger.log(`>>> ${binding_name} = ${stringify(reduct)}`);
             else this.logger.log(`>>> ${stringify(reduct)}`);
             const s_hash: number = structureHash(reduct);
-            if (s_hash in this.structure_hashes)
+            if (this.show_equivalence && s_hash in this.structure_hashes)
                 this.logger.log(`    ↳ equivalent to: ${this.structure_hashes[s_hash].join(", ")}`);
             this.logger.vlog();
             return reduct;

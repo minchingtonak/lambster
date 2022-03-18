@@ -5,6 +5,7 @@ export interface InterpreterOptions {
     verbosity?: Verbosity;
     output_stream?: Writable;
     rename_free_vars?: boolean;
+    show_equivalent?: boolean;
 }
 
 export interface LoggerOptions {
