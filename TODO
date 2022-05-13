@@ -15,3 +15,5 @@ consider passing source to reportError function instead of keeping as instance -
 possibly parse numbers into church numeral equivalent
 
 Look into refactoring reducer and variableresolver into functional components
+
+possibly look into faux tagged union implementation for ast nodes

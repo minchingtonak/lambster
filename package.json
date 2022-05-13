@@ -1,66 +1,60 @@
 {
-    "name": "lambster",
-    "version": "1.0.6",
-    "description": "Lambda calculus interpreter library and CLI.",
-    "type": "commonjs",
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "module": "./dist/index.js",
-    "sideEffects": false,
-    "scripts": {
-        "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/cli.ts",
-        "test": "mocha --require ts-node/register ./tests/**/*.test.ts",
-        "build": "genversion --es6 --semi src/version.ts && tsc -p .",
-        "link": "rm ./env/bin/lambster && npm link --force",
-        "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
-        "clean": "rm -rf ./dist"
-    },
-    "bin": {
-        "lambster": "./dist/cli.js"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+ssh://git@github.com/minchingtonak/lambster.git"
-    },
-    "keywords": [
-        "lambda",
-        "calculus",
-        "functional",
-        "interpreter",
-        "programming",
-        "language",
-        "cli",
-        "front-end",
-        "frontend"
-    ],
-    "author": "Alec Minchington",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/minchingtonak/lambster/issues"
-    },
-    "homepage": "https://github.com/minchingtonak/lambster#readme",
-    "devDependencies": {
-        "@types/chai": "^4.2.11",
-        "@types/mocha": "^7.0.2",
-        "@types/node": "^13.13.9",
-        "babel-core": "^6.26.3",
-        "babel-register": "^6.26.0",
-        "chai": "^4.2.0",
-        "genversion": "^2.2.1",
-        "mocha": "^7.1.2",
-        "nodemon": "^2.0.3",
-        "ts-node": "^8.10.1",
-        "typescript": "^3.8.3",
-        "yarn": "^1.22.4"
-    },
-    "dependencies": {},
-    "prettier": {
-        "printWidth": 100,
-        "tabWidth": 4,
-        "semi": true,
-        "singleQuote": false,
-        "trailingComma": "es5",
-        "bracketSpacing": true,
-        "arrowParens": "avoid"
-    }
+	"name": "lambster",
+	"version": "1.0.7",
+	"description": "Lambda calculus interpreter library and CLI.",
+	"type": "commonjs",
+	"sideEffects": false,
+	"files": [
+		"dist",
+		"src"
+	],
+	"main": "./dist/lambster.umd.js",
+	"module": "./dist/lambster.es.js",
+	"types": "./dist/lamsbter.es.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/lambster.es.js",
+			"require": "./dist/lambster.umd.js"
+		}
+	},
+	"bin": {
+		"lambster": "./dist/cli.js"
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "genversion --es6 --semi src/version.ts && vite build",
+		"start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/cli.ts",
+		"test": "mocha --loader=ts-node/esm --extension ts ./tests/**/*.test.ts",
+		"link": "rm ./env/bin/lambster && npm link --force",
+		"refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
+		"clean": "rm -rf ./dist"
+	},
+	"devDependencies": {
+		"@types/chai": "^4.3.1",
+		"@types/eslint": "^8.4.1",
+		"@types/mocha": "^9.1.1",
+		"@types/node": "^17.0.24",
+		"@types/react-dom": "^18.0.1",
+		"@types/ws": "^8.5.3",
+		"@typescript-eslint/eslint-plugin": "^5.18.0",
+		"@vitejs/plugin-react": "^1.3.1",
+		"chai": "^4.3.6",
+		"eslint": "^8.13.0",
+		"eslint-plugin-react": "^7.29.4",
+		"eslint-plugin-react-hooks": "^4.4.0",
+		"eslint-plugin-unused-imports": "^2.0.0",
+		"genversion": "^3.1.1",
+		"mocha": "^10.0.0",
+		"nodemon": "^2.0.16",
+		"optionator": "^0.9.1",
+		"react-dom": ">=16.8.0",
+		"ts-node": "^10.7.0",
+		"typescript": "^4.5.4",
+		"vite": "^2.9.0",
+		"vite-dts": "^1.0.4",
+		"vite-plugin-checker": "^0.4.5"
+	},
+	"peerDependencies": {
+		"react": ">=16.8.0"
+	}
 }
