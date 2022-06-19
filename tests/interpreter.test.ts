@@ -14,5 +14,8 @@ describe("Interpreter tests", () => {
         int.evaluate("x");
         int.setOptions({ verbosity: Verbosity.LOW, rename_free_vars: true });
         int.evaluate("x");
+        int.evaluate("true") // expects equivalent to true
+        int.setOptions({ verbosity: Verbosity.NONE, show_equivalent: false })
+        int.evaluate("true") // expects no equivalent line
     });
 });
