@@ -23,38 +23,43 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "genversion --es6 --semi src/version.ts && vite build",
-		"start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/cli.ts",
+		"start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/cli.ts # TODO use typescript native watch",
 		"test": "mocha --loader=ts-node/esm --extension ts ./tests/**/*.test.ts",
 		"link": "rm ./env/bin/lambster && npm link --force",
 		"refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
-		"clean": "rm -rf ./dist"
+		"clean": "rm -rf ./dist",
+		"dryupdate": "ncu",
+		"realupdate": "ncu -u"
 	},
 	"devDependencies": {
-		"@types/chai": "^4.3.1",
-		"@types/eslint": "^8.4.1",
-		"@types/mocha": "^9.1.1",
-		"@types/node": "^17.0.24",
-		"@types/react-dom": "^18.0.1",
+		"@types/chai": "^4.3.3",
+		"@types/eslint": "^8.4.10",
+		"@types/mocha": "^10.0.0",
+		"@types/node": "^18.11.9",
+		"@types/react-dom": "^18.0.8",
 		"@types/ws": "^8.5.3",
-		"@typescript-eslint/eslint-plugin": "^5.18.0",
-		"@vitejs/plugin-react": "^1.3.1",
+		"@typescript-eslint/eslint-plugin": "^5.42.0",
+		"@vitejs/plugin-react": "^2.2.0",
 		"chai": "^4.3.6",
-		"eslint": "^8.13.0",
-		"eslint-plugin-react": "^7.29.4",
-		"eslint-plugin-react-hooks": "^4.4.0",
+		"eslint": "^8.26.0",
+		"eslint-plugin-react": "^7.31.10",
+		"eslint-plugin-react-hooks": "^4.6.0",
 		"eslint-plugin-unused-imports": "^2.0.0",
 		"genversion": "^3.1.1",
-		"mocha": "^10.0.0",
-		"nodemon": "^2.0.16",
+		"mocha": "^10.1.0",
+		"nodemon": "^2.0.20",
+		"npm-check-updates": "^16.3.16",
 		"optionator": "^0.9.1",
-		"react-dom": ">=16.8.0",
-		"ts-node": "^10.7.0",
-		"typescript": "^4.5.4",
-		"vite": "^2.9.0",
-		"vite-dts": "^1.0.4",
-		"vite-plugin-checker": "^0.4.5"
+		"ts-node": "^10.9.1",
+		"typescript": "^4.8.4",
+		"vite": "^3.2.2",
+		"vite-plugin-checker": "^0.5.1"
 	},
 	"peerDependencies": {
-		"react": ">=16.8.0"
+		"react": ">=16.8.0",
+		"react-dom": ">=16.8.0"
+	},
+	"dependencies": {
+		"vite-plugin-dts": "^1.6.6"
 	}
 }

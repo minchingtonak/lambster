@@ -61,182 +61,228 @@ export class CommandStmt {
 	}
 }
 
-export abstract class Term {
-	abstract accept<T>(visitor: TermVisitor<T>): T;
-	abstract _rename(new_name: string, new_id: number, root_id: number): void;
-	abstract getAllBoundVarNames(): Set<string>;
-	abstract getAllBoundVars(): Variable[];
-	parent: Term | null = null;
+// export abstract class Term {
+// 	abstract accept<T>(visitor: TermVisitor<T>): T;
+// 	abstract _rename(new_name: string, new_id: number, root_id: number): void;
+// 	abstract getAllBoundVarNames(): Set<string>;
+// 	abstract getAllBoundVars(): Variable[];
+// 	parent: Term | null = null;
+// }
+
+export type TermBase = {
+	parent?: Term;
+	boundVars: Variable[];
+	boundVarNames: Set<string>;
+	// subclass functions
+	// rename
+	// alphaReduce
+	// betaReduce
+};
+
+export type Abstraction = TermBase & {
+	type: 'abs';
+	name: string;
+	id: number;
+	body: Term;
+};
+
+export type Application = TermBase & {
+	type: 'app';
+	func: Term;
+	arg: Term;
+};
+
+export type Variable = TermBase & {
+	type: 'var';
+	free_renamed: boolean;
+	name: string;
+	id: number;
+};
+
+export type Term = Abstraction | Application | Variable;
+
+export function rename(t: Term) {
+	traverseTerm(t, {
+		absf(abs) {
+
+		},
+		appf(app) {
+
+		},
+		vf(v) {
+
+		},
+	})
 }
 
-export class Abstraction extends Term {
-	constructor(public name: string, public id: number, public body: Term) {
-		super();
-		body.parent = this;
-	}
+// export class Abstraction extends Term {
+// 	constructor(public name: string, public id: number, public body: Term) {
+// 		super();
+// 		body.parent = this;
+// 	}
 
-	alphaReduce(new_name: string) {
-		this._rename(new_name, new_name.hash(), this.id);
-	}
+// 	alphaReduce(new_name: string) {
+// 		this._rename(new_name, new_name.hash(), this.id);
+// 	}
 
-	betaReduce(argument: Term, application_parent: Term): Term {
-		const replacements: Variable[] = this.getBoundVars();
-		if (replacements.length !== 0) {
-			replacements.forEach(rep => {
-				if (rep.parent instanceof Abstraction) {
-					rep.parent.body = clone(argument, rep.parent);
-				} else if (rep.parent instanceof Application) {
-					if (rep.parent.func === rep) {
-						rep.parent.func = clone(argument, rep.parent);
-					} else {
-						rep.parent.argument = clone(argument, rep.parent);
-					}
-				}
-			});
-		}
-		// The new parent of the reduct should be the parent of the surrounding application
-		this.body.parent = application_parent;
-		return this.body;
-	}
+// 	betaReduce(argument: Term, application_parent: Term): Term {
+// 		const replacements: Variable[] = this.getBoundVars();
+// 		if (replacements.length !== 0) {
+// 			replacements.forEach(rep => {
+// 				if (rep.parent instanceof Abstraction) {
+// 					rep.parent.body = clone(argument, rep.parent);
+// 				} else if (rep.parent instanceof Application) {
+// 					if (rep.parent.func === rep) {
+// 						rep.parent.func = clone(argument, rep.parent);
+// 					} else {
+// 						rep.parent.argument = clone(argument, rep.parent);
+// 					}
+// 				}
+// 			});
+// 		}
+// 		// The new parent of the reduct should be the parent of the surrounding application
+// 		this.body.parent = application_parent;
+// 		return this.body;
+// 	}
 
-	_rename(new_name: string, new_id: number, root_id: number) {
-		this.body._rename(new_name, new_id, root_id);
-		if (this.id === root_id) {
-			this.name = new_name;
-			this.id = new_id;
-		}
-	}
+// 	_rename(new_name: string, new_id: number, root_id: number) {
+// 		this.body._rename(new_name, new_id, root_id);
+// 		if (this.id === root_id) {
+// 			this.name = new_name;
+// 			this.id = new_id;
+// 		}
+// 	}
 
-	getBoundVars(): Variable[] {
-		return this.findVariables(false, false);
-	}
+// 	getBoundVars(): Variable[] {
+// 		return this.findVariables(false, false);
+// 	}
 
-	getAllBoundVars(): Variable[] {
-		return this.findVariables(false, true);
-	}
+// 	getAllBoundVars(): Variable[] {
+// 		return this.findVariables(false, true);
+// 	}
 
-	getBoundVarNames(): Set<string> {
-		return this.findVariables(true, false);
-	}
+// 	getBoundVarNames(): Set<string> {
+// 		return this.findVariables(true, false);
+// 	}
 
-	getAllBoundVarNames(): Set<string> {
-		return this.findVariables(true, true);
-	}
+// 	getAllBoundVarNames(): Set<string> {
+// 		return this.findVariables(true, true);
+// 	}
 
-	// TODO: figure out how to make return type based on value of names
-	private findVariables<T extends Set<string> | Variable[]>(
-		names: boolean,
-		find_all: boolean
-	): T {
-		const container = names ? new Set<string>() : new Array<Variable>(),
-			cond: (v: Variable) => boolean = v =>
-				v.id === this.id || (find_all && !v.isFreeVar()),
-			accumulator =
-				// TODO: an optimization that would avoid having to do this check and having the change to traverseTerm would be changing an abstraction's id when it's alpha reduced
-				container instanceof Set
-					? (v: Variable) => {
-							if (cond(v)) {
-								container.add(v.name);
-							}
-					}
-					: (v: Variable) => {
-							if (cond(v)) {
-								container.push(v);
-							}
-					};
+// 	// TODO: figure out how to make return type based on value of names
+// 	private findVariables<T extends Set<string> | Variable[]>(
+// 		names: boolean,
+// 		find_all: boolean
+// 	): T {
+// 		const container = names ? new Set<string>() : new Array<Variable>(),
+// 			cond: (v: Variable) => boolean = v =>
+// 				v.id === this.id || (find_all && !v.isFreeVar()),
+// 			accumulator =
+// 				// TODO: an optimization that would avoid having to do this check and having the change to traverseTerm would be changing an abstraction's id when it's alpha reduced
+// 				container instanceof Set
+// 					? (v: Variable) => {
+// 							if (cond(v)) {
+// 								container.add(v.name);
+// 							}
+// 					}
+// 					: (v: Variable) => {
+// 							if (cond(v)) {
+// 								container.push(v);
+// 							}
+// 					};
 
-		traverseTerm(this, { vf: accumulator });
-		return container as T;
-	}
+// 		traverseTerm(this, { vf: accumulator });
+// 		return container as T;
+// 	}
 
-	accept<T>(visitor: TermVisitor<T>): T {
-		return visitor.visitAbstraction(this);
-	}
-}
+// 	accept<T>(visitor: TermVisitor<T>): T {
+// 		return visitor.visitAbstraction(this);
+// 	}
+// }
 
-export class Application extends Term {
-	constructor(public func: Term, public argument: Term) {
-		super();
-		this.func = func;
-		this.argument = argument;
-		func.parent = argument.parent = this;
-	}
+// export class Application extends Term {
+// 	constructor(public func: Term, public argument: Term) {
+// 		super();
+// 		this.func = func;
+// 		this.argument = argument;
+// 		func.parent = argument.parent = this;
+// 	}
 
-	_rename(new_name: string, new_id: number, root_id: number) {
-		this.func._rename(new_name, new_id, root_id);
-		this.argument._rename(new_name, new_id, root_id);
-	}
+// 	_rename(new_name: string, new_id: number, root_id: number) {
+// 		this.func._rename(new_name, new_id, root_id);
+// 		this.argument._rename(new_name, new_id, root_id);
+// 	}
 
-	getAllBoundVars(): Variable[] {
-		return [...this.func.getAllBoundVars(), ...this.argument.getAllBoundVars()];
-	}
+// 	getAllBoundVars(): Variable[] {
+// 		return [...this.func.getAllBoundVars(), ...this.argument.getAllBoundVars()];
+// 	}
 
-	getAllBoundVarNames(): Set<string> {
-		return new Set<string>([
-			...this.func.getAllBoundVarNames(),
-			...this.argument.getAllBoundVarNames(),
-		]);
-	}
+// 	getAllBoundVarNames(): Set<string> {
+// 		return new Set<string>([
+// 			...this.func.getAllBoundVarNames(),
+// 			...this.argument.getAllBoundVarNames(),
+// 		]);
+// 	}
 
-	accept<T>(visitor: TermVisitor<T>): T {
-		return visitor.visitApplication(this);
-	}
-}
+// 	accept<T>(visitor: TermVisitor<T>): T {
+// 		return visitor.visitApplication(this);
+// 	}
+// }
 
-export class Variable extends Term {
-	private free_renamed = false;
+// export class Variable extends Term {
+// 	private free_renamed = false;
 
-	constructor(public name: string, public id: number) {
-		super();
-	}
+// 	constructor(public name: string, public id: number) {
+// 		super();
+// 	}
 
-	static fromOther(v: Variable): Variable {
-		const { id, name, free_renamed } = v,
-			copy = new this(name, id);
-		copy.free_renamed = free_renamed;
-		return copy;
-	}
+// 	static fromOther(v: Variable): Variable {
+// 		const { id, name, free_renamed } = v,
+// 			copy = new this(name, id);
+// 		copy.free_renamed = free_renamed;
+// 		return copy;
+// 	}
 
-	getParentAbstraction(): Abstraction | null {
-		let current = this.parent;
-		while (current) {
-			if (current instanceof Abstraction && this.id === current.id) {
-				return current;
-			}
-			current = current.parent;
-		}
-		return null;
-	}
+// 	getParentAbstraction(): Abstraction | null {
+// 		let current = this.parent;
+// 		while (current) {
+// 			if (current instanceof Abstraction && this.id === current.id) {
+// 				return current;
+// 			}
+// 			current = current.parent;
+// 		}
+// 		return null;
+// 	}
 
-	_rename(new_name: string, new_id: number, root_id: number) {
-		if (this.id === root_id) {
-			this.name = new_name;
-			this.id = new_id;
-		}
-	}
+// 	_rename(new_name: string, new_id: number, root_id: number) {
+// 		if (this.id === root_id) {
+// 			this.name = new_name;
+// 			this.id = new_id;
+// 		}
+// 	}
 
-	isFreeVar(): boolean {
-		return !this.id;
-	}
+// 	isFreeVar(): boolean {
+// 		return !this.id;
+// 	}
 
-	renameFree(new_name: string) {
-		this.free_renamed = true;
-		this.name = new_name;
-	}
+// 	renameFree(new_name: string) {
+// 		this.free_renamed = true;
+// 		this.name = new_name;
+// 	}
 
-	wasFreeRenamed(): boolean {
-		return this.free_renamed;
-	}
+// 	wasFreeRenamed(): boolean {
+// 		return this.free_renamed;
+// 	}
 
-	getAllBoundVars(): Variable[] {
-		return this.isFreeVar() ? [] : [this];
-	}
+// 	getAllBoundVars(): Variable[] {
+// 		return this.isFreeVar() ? [] : [this];
+// 	}
 
-	getAllBoundVarNames(): Set<string> {
-		return new Set<string>([this.name]);
-	}
+// 	getAllBoundVarNames(): Set<string> {
+// 		return new Set<string>([this.name]);
+// 	}
 
-	accept<T>(visitor: TermVisitor<T>): T {
-		return visitor.visitVariable(this);
-	}
-}
+// 	accept<T>(visitor: TermVisitor<T>): T {
+// 		return visitor.visitVariable(this);
+// 	}
+// }

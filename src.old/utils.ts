@@ -27,33 +27,18 @@ export function transformTerm<T>(
 		vf: (v: Variable) => T;
 	}
 ): T {
-	switch (root.type) {
-		case 'abs': {
-			const body = transformTerm(root.body, funcs);
-			return funcs.absf(root, body);
-		}
-		case 'app': {
-			const func = transformTerm(root.func, funcs),
-				arg = transformTerm(root.arg, funcs);
-			return funcs.appf(root, func, arg);
-		}
-		case 'var':
-			return funcs.vf(root);
-		default:
-			throw Error('Term traversal failed');
+	if (root instanceof Abstraction) {
+		const body = transformTerm(root.body, funcs);
+		return funcs.absf(root, body);
+	} else if (root instanceof Application) {
+		const func = transformTerm(root.func, funcs),
+			arg = transformTerm(root.argument, funcs);
+		return funcs.appf(root, func, arg);
+	} else if (root instanceof Variable) {
+		return funcs.vf(root);
+	} else {
+		throw Error('Term traversal failed');
 	}
-	// if (root instanceof Abstraction) {
-	// 	const body = transformTerm(root.body, funcs);
-	// 	return funcs.absf(root, body);
-	// } else if (root instanceof Application) {
-	// 	const func = transformTerm(root.func, funcs),
-	// 		arg = transformTerm(root.argument, funcs);
-	// 	return funcs.appf(root, func, arg);
-	// } else if (root instanceof Variable) {
-	// 	return funcs.vf(root);
-	// } else {
-	// 	throw Error('Term traversal failed');
-	// }
 }
 
 export function traverseTerm(
@@ -65,9 +50,9 @@ export function traverseTerm(
 	}
 ) {
 	transformTerm<void>(root, {
-		absf: abs => funcs.absf?.(abs),
-		appf: app => funcs.appf?.(app),
-		vf: v => funcs.vf?.(v),
+		absf: abs => (funcs.absf !== undefined ? funcs.absf(abs) : void 0),
+		appf: app => (funcs.appf !== undefined ? funcs.appf(app) : void 0),
+		vf: v => (funcs.vf !== undefined ? funcs.vf(v) : void 0),
 	});
 }
 
