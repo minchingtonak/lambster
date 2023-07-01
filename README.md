@@ -97,8 +97,8 @@
            ^
     λ> Lx x
     Error at line 1 [5, 6]: Expected dot after abstraction declaration, got '<newline>'.
-    Lx x
-        ^
+        Lx x
+            ^
     ```
 
 -   Results are checked for structural equivalence to terms bound in the environment
