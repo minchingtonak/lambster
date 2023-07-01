@@ -1,7 +1,8 @@
 import { LoggerOptions } from "./types";
 import { Token } from "./token";
 import { TokenType } from "./tokentype";
-import { Writable } from "stream";
+
+export type LoggerTransport = (log: string) => void;
 
 export enum Verbosity {
     NONE = 0,
@@ -13,26 +14,18 @@ class Logger {
     hasError: boolean = false;
     private verbosity: Verbosity;
     private source: string[];
-    private os: Writable;
+    private transports: LoggerTransport[];
 
     constructor(options?: LoggerOptions) {
         this.setOptions(options);
     }
 
     setOptions(options?: LoggerOptions) {
-        this.verbosity = options
-            ? options.verbosity !== undefined
-                ? options.verbosity
-                : this.verbosity
-            : this.verbosity || Verbosity.NONE;
+        this.verbosity = options?.verbosity ?? this.verbosity ?? Verbosity.NONE;
 
-        this.os = options
-            ? options.output_stream !== undefined
-                ? options.output_stream
-                : this.os
-            : this.os || process.stdout;
+        this.transports = options?.transports ?? this.transports ?? [console.log];
 
-        if (options && options.source) this.source = options.source.split("\n");
+        if (options?.source) this.source = options.source.split("\n");
     }
 
     log(...message: string[]) {
@@ -67,7 +60,11 @@ class Logger {
 
     private print(message: string[], target: Verbosity) {
         if (this.verbosity < target) return;
-        this.os.write(`${message.join(" ")}\n`);
+
+        const log = message.join(" ");
+        for (const transport of this.transports) {
+            transport(log);
+        }
     }
 
     private verboseError(token: Token) {

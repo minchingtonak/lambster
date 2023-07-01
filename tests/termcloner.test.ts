@@ -9,10 +9,10 @@ const expect = chai.expect;
 
 describe("AST cloner tests", () => {
     it("Basic clone test", () => {
-        const tree: Term = new Parser(
+        const tree = new Parser(
             new Lexer("(Lx.x Ly.y y)", logger).lexTokens(),
             logger
-        ).parseTerm();
+        ).parseTerm() as Term;
 
         const copy: Term = clone(tree);
 

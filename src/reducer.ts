@@ -51,6 +51,7 @@ export class Reducer implements TermVisitor<Term> {
                 .getAllBoundVars()
                 .filter(v => conflicts.has(v.name))
                 .map(v => v.getParentAbstraction())
+                .filter((v): v is Abstraction => v !== null)
         );
         if (conflicting_abs.size) this.logger.vvlog();
         conflicting_abs.forEach(abs => {
@@ -62,7 +63,7 @@ export class Reducer implements TermVisitor<Term> {
 
         // Beta reduce x_normal into f_normal then reduce the result of that beta reduction to normal form
         this.logger.vvlog(`\nBeta reducing '${stringify(x_normal)}' into '${stringify(f_normal)}'`);
-        const beta_reduct: Term = f_normal.betaReduce(x_normal, application.parent);
+        const beta_reduct = f_normal.betaReduce(x_normal, application.parent!);
         if (application.parent) {
             if (application.parent instanceof Abstraction) {
                 application.parent.body = beta_reduct;

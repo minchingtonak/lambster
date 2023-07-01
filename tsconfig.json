@@ -4,7 +4,8 @@
         "target": "ES2020",
         "declaration": true,
         "outDir": "./dist",
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "strictNullChecks": true
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules", "**/*.spec.ts"]

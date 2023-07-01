@@ -1,15 +1,14 @@
-import { Verbosity } from "./logger";
-import { Writable } from "stream";
+import { LoggerTransport, Verbosity } from "./logger";
 
 export interface InterpreterOptions {
     verbosity?: Verbosity;
-    output_stream?: Writable;
+    transports?: LoggerTransport[];
     rename_free_vars?: boolean;
     show_equivalent?: boolean;
 }
 
 export interface LoggerOptions {
     verbosity?: Verbosity;
-    output_stream?: Writable;
+    transports?: LoggerTransport[];
     source?: string;
 }

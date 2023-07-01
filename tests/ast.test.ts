@@ -7,7 +7,7 @@ const expect = chai.expect;
 
 describe("AST operation tests", () => {
     it("Test getBoundVars 1", () => {
-        const tree: Term = new Parser(
+        const tree = new Parser(
             new Lexer("(Lx.x)(Ly.y)", logger).lexTokens(),
             logger
         ).parseTerm();
@@ -18,7 +18,7 @@ describe("AST operation tests", () => {
     });
 
     it("Test getBoundVars 2", () => {
-        const tree: Term = new Parser(
+        const tree = new Parser(
             new Lexer("(Lx. Lx. x y y)", logger).lexTokens(),
             logger
         ).parseTerm();
@@ -33,7 +33,7 @@ describe("AST operation tests", () => {
     });
 
     it("Test getBoundNames 1", () => {
-        const tree: Term = new Parser(
+        const tree = new Parser(
             new Lexer("(Lx. Lx. x y y)", logger).lexTokens(),
             logger
         ).parseTerm();

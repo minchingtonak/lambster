@@ -49,7 +49,11 @@ export class Parser {
 
     private idList: AbstractionIndexList;
 
-    constructor(private tokens: Token[] = [], private logger: Logger = new Logger(), start_index: number = 1) {
+    constructor(
+        private tokens: Token[] = [],
+        private logger: Logger = new Logger(),
+        start_index: number = 1
+    ) {
         this.idList = new AbstractionIndexList(start_index);
     }
 
@@ -64,11 +68,16 @@ export class Parser {
 
     parse(): Stmt[] {
         const stmts: Stmt[] = [];
-        while (!this.isAtEnd()) stmts.push(this.stmt());
+        while (!this.isAtEnd()) {
+            const stmt = this.stmt();
+            if (stmt) {
+                stmts.push(stmt);
+            }
+        }
         return stmts;
     }
 
-    parseTerm(): Term {
+    parseTerm(): Term | null {
         try {
             const parsed: TermStmt = this.termStmt();
             if (!this.isAtEnd())
@@ -79,7 +88,7 @@ export class Parser {
         }
     }
 
-    private stmt(): Stmt {
+    private stmt(): Stmt | null {
         try {
             while (this.peek().type === TokenType.NEWLINE) this.advance();
             if (this.check(TokenType.IDENTIFIER) && this.checkNext(TokenType.EQUALS))
@@ -95,8 +104,10 @@ export class Parser {
     }
 
     private bindingStmt(): BindingStmt {
-        const ident: string = this.consume(TokenType.IDENTIFIER, "No identifier in binding.")
-            .lexeme;
+        const ident: string = this.consume(
+            TokenType.IDENTIFIER,
+            "No identifier in binding."
+        ).lexeme;
         this.consume(TokenType.EQUALS, "Expected '=' in binding.");
         const term: Term = this.term();
         this.consume(TokenType.NEWLINE, "Expected newline after binding statement.");
@@ -104,18 +115,18 @@ export class Parser {
     }
 
     private static tokenToCmd: CommandType[] = [
-        null,
-        null,
-        null,
+        CommandType.NONE,
+        CommandType.NONE,
+        CommandType.NONE,
         CommandType.ENV,
-        null,
+        CommandType.NONE,
         CommandType.HELP,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        CommandType.NONE,
+        CommandType.NONE,
+        CommandType.NONE,
+        CommandType.NONE,
+        CommandType.NONE,
+        CommandType.NONE,
     ];
     private cmdStmt(type: TokenType, str: string): CommandStmt {
         this.consume(TokenType.NEWLINE, `Expected newline after ${str} command.`);
