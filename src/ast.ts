@@ -42,6 +42,7 @@ export class BindingStmt {
 }
 
 export enum CommandType {
+    NONE,
     ENV,
     UNBIND,
     HELP,
@@ -66,7 +67,7 @@ export abstract class Term {
     abstract _rename(new_name: string, new_id: number, root_id: number): void;
     abstract getAllBoundVarNames(): Set<string>;
     abstract getAllBoundVars(): Variable[];
-    parent: Term;
+    parent: Term | null;
 }
 
 export class Abstraction extends Term {
@@ -189,8 +190,8 @@ export class Variable extends Term {
         return copy;
     }
 
-    getParentAbstraction(): Abstraction {
-        let current: Term = this.parent;
+    getParentAbstraction(): Abstraction | null {
+        let current = this.parent;
         while (current) {
             if (current instanceof Abstraction && this.id == current.id) return current;
             current = current.parent;

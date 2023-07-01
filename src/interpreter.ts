@@ -31,11 +31,11 @@ export class Interpreter implements StmtVisitor<void> {
                 parsed_terms: { [key: string]: Term } = {};
             Object.keys(dict).forEach(key => {
                 parser.setTokens(new Lexer(dict[key]).lexTokens());
-                const term: Term = parser.parseTerm(),
+                const term = parser.parseTerm(),
                     subkeys: string[] = key.split("|");
                 subkeys.forEach(subkey => {
-                    this.addHash(term, subkey);
-                    parsed_terms[subkey] = term;
+                    this.addHash(term!, subkey);
+                    parsed_terms[subkey] = term!;
                 });
             });
             this.start_index = parser.currentIndex();
@@ -89,30 +89,19 @@ export class Interpreter implements StmtVisitor<void> {
     }
 
     setOptions(options?: InterpreterOptions) {
-        this.rename_free_vars = options
-            ? options.rename_free_vars !== undefined
-                ? options.rename_free_vars
-                : this.rename_free_vars
-            : this.rename_free_vars || false;
+        this.rename_free_vars = options?.rename_free_vars ?? this.rename_free_vars ?? false;
 
-        this.show_equivalence = options
-          ? options.show_equivalent !== undefined
-            ? options.show_equivalent
-            : this.show_equivalence
-          : this.show_equivalence || true;
+        this.show_equivalence = options?.show_equivalent ?? this.show_equivalence ?? true;
 
         if (!this.logger) {
-            this.logger = new Logger({
-                verbosity: (options ? options.verbosity : undefined) || Verbosity.NONE,
-                output_stream: (options ? options.output_stream : undefined) || process.stdout,
-            });
+            this.logger = new Logger();
             this.resolver = new BindingResolver(this.bindings, this.logger);
-        } else {
-            this.logger.setOptions({
-                output_stream: options ? options.output_stream : undefined,
-                verbosity: options ? options.verbosity : undefined,
-            });
         }
+
+        this.logger.setOptions({
+            verbosity: options?.verbosity,
+            transports: options?.transports,
+        });
     }
 
     evaluate(source: string) {
@@ -135,9 +124,11 @@ export class Interpreter implements StmtVisitor<void> {
         this.eval(term_stmt.term);
     }
     visitBindingStmt(binding: BindingStmt): void {
-        const reduct: Term = this.eval(binding.term, binding.name);
-        this.bindings[binding.name] = reduct;
-        this.addHash(reduct, binding.name);
+        const reduct = this.eval(binding.term, binding.name);
+        if (reduct) {
+            this.bindings[binding.name] = reduct;
+            this.addHash(reduct, binding.name);
+        }
     }
     visitCommandStmt(command: CommandStmt): void {
         switch (command.type) {
@@ -145,7 +136,7 @@ export class Interpreter implements StmtVisitor<void> {
                 this.printBindings();
                 break;
             case CommandType.UNBIND:
-                this.deleteBinding(command.argument);
+                this.deleteBinding(command.argument!);
                 break;
             case CommandType.HELP:
                 this.printHelp();
@@ -157,7 +148,7 @@ export class Interpreter implements StmtVisitor<void> {
         return this.logger.hasError;
     }
 
-    private eval(term: Term, binding_name?: string): Term {
+    private eval(term: Term, binding_name?: string): Term | undefined {
         this.logger.vlog(`λ > ${stringify(term)}`);
         try {
             const reduct: Term = new Reducer(this.rename_free_vars, this.logger).reduceTerm(

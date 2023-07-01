@@ -11,7 +11,12 @@ const expect = chai.expect;
 describe("Parser tests", () => {
     it("Basic parse test", () => {
         expect(
-            stringify(new Parser(new Lexer("(Lx.x)(Ly.y)", logger).lexTokens(), logger).parseTerm())
+            stringify(
+                new Parser(
+                    new Lexer("(Lx.x)(Ly.y)", logger).lexTokens(),
+                    logger
+                ).parseTerm() as Term
+            )
         ).to.equal("((λx. x) (λy. y))");
     });
 
@@ -21,7 +26,7 @@ describe("Parser tests", () => {
                 new Parser(
                     new Lexer("((λx. (x x)) (λy. (y y)))", logger).lexTokens(),
                     logger
-                ).parseTerm()
+                ).parseTerm() as Term
             )
         ).to.equal("((λx. (x x)) (λy. (y y)))");
     });
@@ -29,23 +34,28 @@ describe("Parser tests", () => {
     it("Parse test 3", () => {
         expect(
             stringify(
-                new Parser(new Lexer("(Lx.x Ly.y y)", logger).lexTokens(), logger).parseTerm()
+                new Parser(
+                    new Lexer("(Lx.x Ly.y y)", logger).lexTokens(),
+                    logger
+                ).parseTerm() as Term
             )
         ).to.equal("(λx. (x (λy. (y y))))");
     });
 
     it("Associativity test 1", () => {
         expect(
-            stringify(new Parser(new Lexer("Lx.x x x x", logger).lexTokens(), logger).parseTerm())
+            stringify(
+                new Parser(new Lexer("Lx.x x x x", logger).lexTokens(), logger).parseTerm() as Term
+            )
         ).to.equal("(λx. (((x x) x) x))");
     });
 
     it("Parent assignment test", () => {
-        const tree: Term = new Parser(
+        const tree = new Parser(
             new Lexer("((λx. (x x)) (λy. (y y)))", logger).lexTokens(),
             logger
         ).parseTerm();
-        traverseAst(tree, (val: Term) => {
+        traverseAst(tree!, (val: Term) => {
             if (val instanceof Application) {
                 expect(val.func.parent).to.equal(val);
                 expect(val.argument.parent).to.equal(val);

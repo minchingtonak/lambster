@@ -21,8 +21,7 @@ module LambsterCLI {
             }
             interpreter = new Interpreter({
                 verbosity: args.verbosity as Verbosity,
-                output_stream: process.stdout,
-                rename_free_vars: args["rename_free_vars"],
+                rename_free_vars: args.rename_free_vars,
             });
             if ("filename" in args) {
                 runFile(args["filename"] as string);
@@ -40,7 +39,7 @@ module LambsterCLI {
         const options = { verbosity: Verbosity.NONE, rename_free_vars: false };
         process.argv.slice(2).forEach(arg => {
             if (arg.startsWith("-")) {
-                switch (arg.substr(1)) {
+                switch (arg.substring(1)) {
                     case "v":
                         if (options["verbosity"] < Verbosity.LOW)
                             options["verbosity"] = Verbosity.LOW;
@@ -86,7 +85,7 @@ module LambsterCLI {
 
     async function runPrompt() {
         function waitForLine(prompt: string): Promise<string> {
-            return new Promise((resolve, reject) => {
+            return new Promise(resolve => {
                 reader.question(prompt, answer => {
                     resolve(answer);
                 });

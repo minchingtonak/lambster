@@ -9,7 +9,7 @@ const expect = chai.expect;
 
 describe("Term hasher tests", () => {
     function genTerm(source: string): Term {
-        return new Parser(new Lexer(source, logger).lexTokens(), logger).parseTerm();
+        return new Parser(new Lexer(source, logger).lexTokens(), logger).parseTerm() as Term;
     }
     function hash(source: string): number {
         const h = hashTerm(genTerm(source));

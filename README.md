@@ -97,8 +97,8 @@
            ^
     λ> Lx x
     Error at line 1 [5, 6]: Expected dot after abstraction declaration, got '<newline>'.
-	Lx x
-	    ^
+    Lx x
+        ^
     ```
 
 -   Results are checked for structural equivalence to terms bound in the environment
@@ -134,9 +134,11 @@ npm i lambster
 ### CLI
 
 After `lambster` is installed, launch the interactive prompt:
+
 ```bash
 $ lambster
 ```
+
 ### Client
 
 After `lambster` is installed, import and use the interpreter:
@@ -153,24 +155,18 @@ interpreter.evaluate("(Ly. y) z");
 
 The interpreter can also be passed an [`InterpreterOptions`](#interface-InterpreterOptions) to control output parameters.
 
-NodeJS's `Writable` stream interface is used to write output, allowing for custom output handling.
+Interpreter output is surfaced via `console.log` by default, and can be customized via the `transports` option.
 
 ```js
 import { Interpreter, Verbosity, InterpreterOptions } from "lambster";
-import { Writable } from "stream";
 
 let output: string = "";
 
 const interpreter: Interpreter = new Interpreter({
     verbosity: Verbosity.LOW,
-    output_stream: new Writable({
-        // Called each time the interpreter logs a line of output
-        write(chunk, encoding, done) {
-            // Do whatever you want with the output
-            output += chunk.toString();
-            done();
-        },
-    }),
+    transports: [
+        log => (output += log), // called once for each step of the reduction
+    ],
 });
 
 interpreter.evaluate("(Lx.x x) y");
@@ -190,21 +186,24 @@ console.log(output);
 
     -   Create an instance of an `Interpreter`, optionally with the given options.
     -   If options are not provided, interpreter parameters are given these default values:
-        -   verbosity: `Verbosity.NONE` (result only)
+        -   verbosity: `Verbosity.NONE` (prints result only)
+        -   transports: `[console.log]`
         -   rename_free_vars: `false`
-        -   output_stream: `process.stdout`
+        -   show_equivalent: `true`
 
 -   `interpret(source: string)`
-    -   Interpret the given string and write the output to the provided `Writable`
+    -   Interpret the given string and write the output to the provided transports
 
 ### interface InterpreterOptions
 
 -   `verbosity?: Verbosity`
     -   Optional Verbosity level for the interpreter
--   `output_stream?: Writable`
-    -   Optional `Writable` that the interpreter will write its output to
+-   `transports?: LoggerTransport[]`
+    -   Optional list of transport functions that the interpreter will pass its output to
 -   `rename_free_vars?: boolean`
     -   Optional boolean that controls whether the interpreter will rename free variables to unambiguous names
+-   `show_equivalent?: boolean`
+    -   Options boolean that controls whether the interpreter will also print named terms that the result of a reduction is structurally equivalent to
 
 ### enum Verbosity
 

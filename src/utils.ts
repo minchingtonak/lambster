@@ -64,7 +64,7 @@ export function stringify(term: Term): string {
     });
 }
 
-export function clone(term: Term, new_parent: Term = null) {
+export function clone(term: Term, new_parent: Term | null = null) {
     const cloned: Term = transformTerm<Term>(term, {
         absf: (abs, body) => new Abstraction(abs.name, abs.id, body),
         appf: (_, func, arg) => new Application(func, arg),
