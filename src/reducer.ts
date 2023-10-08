@@ -12,7 +12,7 @@ export class Reducer implements TermVisitor<Term> {
     private redex: Term;
     private depth: number;
 
-    private static MAX_RECURSION_DEPTH: number = 1000;
+    private static MAX_RECURSION_DEPTH: number = 10000;
 
     constructor(private rename_free_vars: boolean, private logger: Logger) {}
 

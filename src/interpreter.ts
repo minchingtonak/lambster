@@ -64,6 +64,7 @@ export class Interpreter implements StmtVisitor<void> {
 
             // Arithmetic
             incr: "(λn. (λf. (λy. (f ((n f) y)))))",
+            decr: "(Ln. (Lf. (Lx. n (Lg. Lh. h (g f)) (Ly. x) (Ly. y))))",
             plus: "(λm. (λn. ((m incr) n)))",
             times: "(λm. (λn. ((m (plus n)) zero)))",
             iszero: "(λn. ((n (λy. false)) true))",
@@ -77,6 +78,10 @@ export class Interpreter implements StmtVisitor<void> {
             seven: "(λf. (λx. (f (f (f (f (f (f (f x)))))))))",
             eight: "(λf. (λx. (f (f (f (f (f (f (f (f x))))))))))",
             nine: "(λf. (λx. (f (f (f (f (f (f (f (f (f x)))))))))))",
+
+            ycomb: "(Lf. (Lx. f (x x)) (Lz. f (z z)))",
+            fact: "Lf. Ln. if (iszero n) one (times n (f (decr n)))",
+            factorial: "ycomb fact"
         });
 
     private rename_free_vars: boolean;

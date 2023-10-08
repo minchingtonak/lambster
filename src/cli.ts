@@ -20,7 +20,7 @@ module LambsterCLI {
                 process.exit(0);
             }
             interpreter = new Interpreter({
-                verbosity: args.verbosity as Verbosity,
+                verbosity: Verbosity.LOW as Verbosity,
                 rename_free_vars: args.rename_free_vars,
             });
             if ("filename" in args) {
