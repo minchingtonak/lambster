@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "nearly": "^1.8.1",
-    "prettier": "^3.5.3"
+    "prettier": "^3.5.3",
+    "typedoc": "^0.28.4"
   }
 }
