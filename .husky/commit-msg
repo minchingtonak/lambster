@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -Eeuo pipefail
+
+bun run check
+
+bun run lint
+
+bun run commitlint "$1"

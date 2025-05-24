@@ -2,15 +2,48 @@
   "name": "lambster",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "check": "bunx prettier --check .",
+    "format": "bunx prettier --write .",
+    "lint": "bunx eslint .",
+    "lint:fix": "bunx eslint --fix .",
+    "prepare": "husky",
+    "commitlint": "commitlint --edit"
+  },
+  "dependencies": {
+    "nearley": "^2.20.1",
+    "typedoc": "^0.28.4"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@eslint/js": "^9.27.0",
+    "@types/bun": "latest",
+    "eslint": "^9.27.0",
+    "globals": "^16.1.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.5.3",
+    "typescript-eslint": "^8.32.1"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
-  "dependencies": {
-    "nearley": "^2.20.1",
-    "prettier": "^3.5.3",
-    "typedoc": "^0.28.4"
+  "prettier": {
+    "experimentalTernaries": true,
+    "printWidth": 80,
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": false,
+    "quoteProps": "consistent",
+    "trailingComma": "all",
+    "bracketSpacing": true,
+    "objectWrap": "collapse",
+    "arrowParens": "always",
+    "endOfLine": "lf"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   }
 }
