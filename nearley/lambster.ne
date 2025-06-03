@@ -26,7 +26,7 @@ commandStmt ->  "help" {%
         }
 %}
 
-                | "unbind" _ IDENTIFIER {%
+                | "unbind" __ IDENTIFIER {%
         function(d) {
                 return {
                         command: d[0],
