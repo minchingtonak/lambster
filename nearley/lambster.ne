@@ -48,6 +48,15 @@ abstraction -> LAMBDA _ IDENTIFIER _ "." _ termStmt {%
                         term: d[6][0]
                 }
         }
+%}              
+                | LAMBDA _ IDENTIFIER ( __ IDENTIFIER ):+ _ "." _ termStmt {%
+        function(d) {
+                return {
+                        lambda_symbol: d[0][0],
+                        identifier: d[2],
+                        term: d[7][0]
+                }
+        }
 %}
 
 application -> termStmt __ termStmt

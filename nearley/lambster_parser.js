@@ -33,7 +33,7 @@ var grammar = {
         }
         },
     {"name": "commandStmt$string$3", "symbols": [{"literal":"u"}, {"literal":"n"}, {"literal":"b"}, {"literal":"i"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "commandStmt", "symbols": ["commandStmt$string$3", "_", "IDENTIFIER"], "postprocess": 
+    {"name": "commandStmt", "symbols": ["commandStmt$string$3", "__", "IDENTIFIER"], "postprocess": 
         function(d) {
                 return {
                         command: d[0],
@@ -46,6 +46,19 @@ var grammar = {
     {"name": "termStmt", "symbols": ["grouping"]},
     {"name": "termStmt", "symbols": ["IDENTIFIER"]},
     {"name": "abstraction", "symbols": ["LAMBDA", "_", "IDENTIFIER", "_", {"literal":"."}, "_", "termStmt"], "postprocess": 
+        function(d) {
+                return {
+                        lambda_symbol: d[0][0],
+                        identifier: d[2],
+                        term: d[6][0]
+                }
+        }
+        },
+    {"name": "abstraction$ebnf$1$subexpression$1", "symbols": ["__", "IDENTIFIER"]},
+    {"name": "abstraction$ebnf$1", "symbols": ["abstraction$ebnf$1$subexpression$1"]},
+    {"name": "abstraction$ebnf$1$subexpression$2", "symbols": ["__", "IDENTIFIER"]},
+    {"name": "abstraction$ebnf$1", "symbols": ["abstraction$ebnf$1", "abstraction$ebnf$1$subexpression$2"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "abstraction", "symbols": ["LAMBDA", "_", "IDENTIFIER", "abstraction$ebnf$1", "_", {"literal":"."}, "_", "termStmt"], "postprocess": 
         function(d) {
                 return {
                         lambda_symbol: d[0][0],
