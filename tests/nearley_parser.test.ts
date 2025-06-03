@@ -58,3 +58,9 @@ test("term statement parse test 3", () => {
   expect(parser.results[0][0][0]["term"]).toBe("tlas");
   expect(parser.results[0][0][0]["lambda_symbol"]).toBe("λ");
 });
+
+test("complex test", () => {
+  const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
+  parser.feed("(Lx y. L z. z y x) w");
+  console.dir(parser.results, { depth: Infinity });
+});
