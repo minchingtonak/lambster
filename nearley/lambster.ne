@@ -5,8 +5,8 @@ stmt ->   bindingStmt
 bindingStmt -> IDENTIFIER _ "=" _ termStmt {%
         function(d) {
                 return {
-                        identifier: d[0][0],
-                        term: d[4][0]
+                        identifier: d[0],
+                        term: d[4]
                 }
         }
 %}
@@ -45,7 +45,7 @@ abstraction -> LAMBDA _ IDENTIFIER _ "." _ termStmt {%
                 return {
                         lambda_symbol: d[0][0],
                         identifier: d[2],
-                        term: d[6][0]
+                        term: d[6]
                 }
         }
 %}              
@@ -59,8 +59,20 @@ abstraction -> LAMBDA _ IDENTIFIER _ "." _ termStmt {%
         }
 %}
 
-application -> termStmt __ termStmt
-grouping -> "(" _ termStmt _ ")"
+application -> termStmt __ termStmt {%
+        function(d) {
+                return {
+                        function: d[0],
+                        argument: d[2]
+                }
+        }
+%}
+
+grouping -> "(" _ termStmt _ ")" {%
+        function(d) {
+                return d[2]
+        }
+%}
 LAMBDA -> "lambda"i | "L" | "\\" | "λ"
 
 IDENTIFIER -> [a-z0-9]:+ {% d => d[0].join("") %}
