@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "nearley": "^2.20.1",
+    "ts-pattern": "^5.7.1",
     "typedoc": "^0.28.4"
   },
   "devDependencies": {
