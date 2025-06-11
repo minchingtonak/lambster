@@ -1,0 +1,40 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Override development settings for production build
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./dist/types",
+
+    // Module resolution for build - bundler for compatibility
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": false,
+    "verbatimModuleSyntax": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+
+    // Ensure compatibility
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM"],
+
+    // Skip lib check to avoid nearley type issues
+    "skipLibCheck": true,
+
+    // Source maps for debugging
+    "sourceMap": false,
+    "inlineSourceMap": false,
+    "inlineSources": false
+  },
+  "include": ["src/**/*", "nearley.d.ts"],
+  "exclude": [
+    "tests/**/*",
+    "examples/**/*",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "dist/**/*",
+    "node_modules/**/*"
+  ]
+}
