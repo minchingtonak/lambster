@@ -2,7 +2,7 @@
  * Parser-related types for handling raw nearley output
  */
 
-import type { Statement } from "./ast.js";
+import type { Statement } from "./ast";
 
 /**
  * Raw parser output types (what nearley currently produces)

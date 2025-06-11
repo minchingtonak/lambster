@@ -2,8 +2,8 @@
  * Main AST transformer for converting raw parser output to tagged unions
  */
 
-import type { Statement, Term, Command, LambdaSymbol } from "../types/ast.js";
-import { TransformError } from "../types/parser.js";
+import type { Statement, Term, Command, LambdaSymbol } from "../types/ast";
+import { TransformError } from "../types/parser";
 
 export class ASTTransformer {
   /**
@@ -33,7 +33,7 @@ export class ASTTransformer {
       typeof obj.identifier === "string"
     ) {
       return {
-        tag: "Binding",
+        tag: "bind",
         identifier: obj.identifier,
         term: this.transformTerm(obj.term),
       };
@@ -41,11 +41,11 @@ export class ASTTransformer {
 
     // Handle command statements
     if ("command" in obj && typeof obj.command === "string") {
-      return { tag: "Command", command: this.transformCommand(obj) };
+      return { tag: "cmd", command: this.transformCommand(obj) };
     }
 
     // Handle term statements (nested arrays)
-    return { tag: "Term", term: this.transformTerm(statement) };
+    return { tag: "term", term: this.transformTerm(statement) };
   }
 
   /**
@@ -68,7 +68,7 @@ export class ASTTransformer {
 
     // Handle string identifiers (variables)
     if (typeof raw === "string") {
-      return { tag: "Variable", name: raw };
+      return { tag: "var", name: raw };
     }
 
     if (!raw || typeof raw !== "object") {
@@ -94,7 +94,7 @@ export class ASTTransformer {
       }
 
       return {
-        tag: "Abstraction",
+        tag: "abs",
         symbol: obj.lambda_symbol as LambdaSymbol,
         parameter: obj.identifier,
         body: this.transformTerm(obj.term),
@@ -104,7 +104,7 @@ export class ASTTransformer {
     // Handle applications
     if ("function" in obj && "argument" in obj) {
       return {
-        tag: "Application",
+        tag: "app",
         function: this.transformTerm(obj.function),
         argument: this.transformTerm(obj.argument),
       };
@@ -132,16 +132,16 @@ export class ASTTransformer {
 
     switch (obj.command) {
       case "help":
-        return { tag: "Help" };
+        return { tag: "help" };
 
       case "env":
-        return { tag: "Environment" };
+        return { tag: "env" };
 
       case "unbind":
         if (!("identifier" in obj) || typeof obj.identifier !== "string") {
           throw new TransformError("Unbind command missing identifier", raw);
         }
-        return { tag: "Unbind", identifier: obj.identifier };
+        return { tag: "unbind", identifier: obj.identifier };
 
       default:
         throw new TransformError(`Unknown command: ${obj.command}`, raw);

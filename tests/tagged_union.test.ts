@@ -16,20 +16,20 @@ import {
 describe("Tagged Union Parser Tests", () => {
   test("parse simple variable", () => {
     const result = parseTerm("x");
-    expect(result.tag).toBe("Variable");
-    if (result.tag === "Variable") {
+    expect(result.tag).toBe("var");
+    if (result.tag === "var") {
       expect(result.name).toBe("x");
     }
   });
 
   test("parse lambda abstraction", () => {
     const result = parseTerm("λx.x");
-    expect(result.tag).toBe("Abstraction");
-    if (result.tag === "Abstraction") {
+    expect(result.tag).toBe("abs");
+    if (result.tag === "abs") {
       expect(result.symbol).toBe("λ");
       expect(result.parameter).toBe("x");
-      expect(result.body.tag).toBe("Variable");
-      if (result.body.tag === "Variable") {
+      expect(result.body.tag).toBe("var");
+      if (result.body.tag === "var") {
         expect(result.body.name).toBe("x");
       }
     }
@@ -37,14 +37,11 @@ describe("Tagged Union Parser Tests", () => {
 
   test("parse application", () => {
     const result = parseTerm("f x");
-    expect(result.tag).toBe("Application");
-    if (result.tag === "Application") {
-      expect(result.function.tag).toBe("Variable");
-      expect(result.argument.tag).toBe("Variable");
-      if (
-        result.function.tag === "Variable" &&
-        result.argument.tag === "Variable"
-      ) {
+    expect(result.tag).toBe("app");
+    if (result.tag === "app") {
+      expect(result.function.tag).toBe("var");
+      expect(result.argument.tag).toBe("var");
+      if (result.function.tag === "var" && result.argument.tag === "var") {
         expect(result.function.name).toBe("f");
         expect(result.argument.name).toBe("x");
       }
@@ -53,25 +50,25 @@ describe("Tagged Union Parser Tests", () => {
 
   test("parse binding statement", () => {
     const result = parse("identity = λx.x");
-    expect(result.tag).toBe("Binding");
-    if (result.tag === "Binding") {
+    expect(result.tag).toBe("bind");
+    if (result.tag === "bind") {
       expect(result.identifier).toBe("identity");
-      expect(result.term.tag).toBe("Abstraction");
+      expect(result.term.tag).toBe("abs");
     }
   });
 
   test("parse command statement", () => {
     const result = parse("help");
-    expect(result.tag).toBe("Command");
-    if (result.tag === "Command") {
-      expect(result.command.tag).toBe("Help");
+    expect(result.tag).toBe("cmd");
+    if (result.tag === "cmd") {
+      expect(result.command.tag).toBe("help");
     }
   });
 
   test("parse unbind command", () => {
     const result = parseCommand("unbind foo");
-    expect(result.tag).toBe("Unbind");
-    if (result.tag === "Unbind") {
+    expect(result.tag).toBe("unbind");
+    if (result.tag === "unbind") {
       expect(result.identifier).toBe("foo");
     }
   });
@@ -94,9 +91,9 @@ describe("Pattern Matching Tests", () => {
     const term = parseTerm("λx.x");
 
     const result = match(term)
-      .with({ tag: "Variable" }, ({ name }) => `var:${name}`)
-      .with({ tag: "Abstraction" }, ({ parameter }) => `abs:${parameter}`)
-      .with({ tag: "Application" }, () => "app")
+      .with({ tag: "var" }, ({ name }) => `var:${name}`)
+      .with({ tag: "abs" }, ({ parameter }) => `abs:${parameter}`)
+      .with({ tag: "app" }, () => "app")
       .exhaustive();
 
     expect(result).toBe("abs:x");
@@ -117,11 +114,11 @@ describe("Lambda Calculus Operations", () => {
 
     // λx.x y is parsed as an application: (λx.x) y
     // After substitution of y with z, it should be: (λx.x) z
-    expect(result.tag).toBe("Application");
-    if (result.tag === "Application") {
-      expect(result.function.tag).toBe("Abstraction");
-      expect(result.argument.tag).toBe("Variable");
-      if (result.argument.tag === "Variable") {
+    expect(result.tag).toBe("app");
+    if (result.tag === "app") {
+      expect(result.function.tag).toBe("abs");
+      expect(result.argument.tag).toBe("var");
+      if (result.argument.tag === "var") {
         expect(result.argument.name).toBe("z");
       }
     }
@@ -133,8 +130,8 @@ describe("Lambda Calculus Operations", () => {
 
     expect(reduced).not.toBeNull();
     if (reduced) {
-      expect(reduced.tag).toBe("Variable");
-      if (reduced.tag === "Variable") {
+      expect(reduced.tag).toBe("var");
+      if (reduced.tag === "var") {
         expect(reduced.name).toBe("y");
       }
     }
@@ -144,8 +141,8 @@ describe("Lambda Calculus Operations", () => {
     const term = parseTerm("(λx.x) ((λy.y) z)");
     const normal = normalize(term);
 
-    expect(normal.tag).toBe("Variable");
-    if (normal.tag === "Variable") {
+    expect(normal.tag).toBe("var");
+    if (normal.tag === "var") {
       expect(normal.name).toBe("z");
     }
   });
@@ -154,17 +151,17 @@ describe("Lambda Calculus Operations", () => {
 describe("Complex Lambda Expressions", () => {
   test("Church numeral zero", () => {
     const term = parseTerm("λf.λx.x");
-    expect(term.tag).toBe("Abstraction");
+    expect(term.tag).toBe("abs");
 
-    if (term.tag === "Abstraction") {
+    if (term.tag === "abs") {
       expect(term.parameter).toBe("f");
-      expect(term.body.tag).toBe("Abstraction");
+      expect(term.body.tag).toBe("abs");
 
-      if (term.body.tag === "Abstraction") {
+      if (term.body.tag === "abs") {
         expect(term.body.parameter).toBe("x");
-        expect(term.body.body.tag).toBe("Variable");
+        expect(term.body.body.tag).toBe("var");
 
-        if (term.body.body.tag === "Variable") {
+        if (term.body.body.tag === "var") {
           expect(term.body.body.name).toBe("x");
         }
       }
@@ -179,12 +176,12 @@ describe("Complex Lambda Expressions", () => {
 
   test("Complex application chain", () => {
     const term = parseTerm("f g h i j");
-    expect(term.tag).toBe("Application");
+    expect(term.tag).toBe("app");
 
     // Should be left-associative: ((((f g) h) i) j)
     let current = term;
     let depth = 0;
-    while (current.tag === "Application") {
+    while (current.tag === "app") {
       depth++;
       current = current.function;
     }
@@ -210,7 +207,7 @@ describe("Parser Options", () => {
   test("validation option", () => {
     const parser = new LambsterParser({ validate: true });
     const result = parser.parse("λx.x");
-    expect(result.tag).toBe("Term");
+    expect(result.tag).toBe("term");
   });
 
   test("multiple parse results", () => {
@@ -218,8 +215,8 @@ describe("Parser Options", () => {
     const statements = parser.parseMultiple("λx.x\nhelp\ny = z");
 
     expect(statements).toHaveLength(3);
-    expect(statements[0]?.tag).toBe("Term");
-    expect(statements[1]?.tag).toBe("Command");
-    expect(statements[2]?.tag).toBe("Binding");
+    expect(statements[0]?.tag).toBe("term");
+    expect(statements[1]?.tag).toBe("cmd");
+    expect(statements[2]?.tag).toBe("bind");
   });
 });

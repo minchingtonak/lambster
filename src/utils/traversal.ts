@@ -3,7 +3,7 @@
  */
 
 import { match } from "ts-pattern";
-import type { Term, Statement } from "../types/ast.js";
+import type { Term, Statement } from "../types/ast";
 
 /**
  * Map over all terms in an AST, applying a transformation function
@@ -12,12 +12,9 @@ export function mapTerm<T>(term: Term, fn: (_t: Term) => T): T[] {
   const results: T[] = [fn(term)];
 
   return match(term)
-    .with({ tag: "Variable" }, () => results)
-    .with({ tag: "Abstraction" }, ({ body }) => [
-      ...results,
-      ...mapTerm(body, fn),
-    ])
-    .with({ tag: "Application" }, ({ function: fnTerm, argument }) => [
+    .with({ tag: "var" }, () => results)
+    .with({ tag: "abs" }, ({ body }) => [...results, ...mapTerm(body, fn)])
+    .with({ tag: "app" }, ({ function: fnTerm, argument }) => [
       ...results,
       ...mapTerm(fnTerm, fn),
       ...mapTerm(argument, fn),
@@ -36,9 +33,9 @@ export function foldTerm<T>(
   let result = fn(initial, term);
 
   return match(term)
-    .with({ tag: "Variable" }, () => result)
-    .with({ tag: "Abstraction" }, ({ body }) => foldTerm(body, fn, result))
-    .with({ tag: "Application" }, ({ function: fnTerm, argument }) => {
+    .with({ tag: "var" }, () => result)
+    .with({ tag: "abs" }, ({ body }) => foldTerm(body, fn, result))
+    .with({ tag: "app" }, ({ function: fnTerm, argument }) => {
       result = foldTerm(fnTerm, fn, result);
       return foldTerm(argument, fn, result);
     })
@@ -52,9 +49,9 @@ export function visitTerm(term: Term, visitor: (_t: Term) => void): void {
   visitor(term);
 
   match(term)
-    .with({ tag: "Variable" }, () => {})
-    .with({ tag: "Abstraction" }, ({ body }) => visitTerm(body, visitor))
-    .with({ tag: "Application" }, ({ function: fnTerm, argument }) => {
+    .with({ tag: "var" }, () => {})
+    .with({ tag: "abs" }, ({ body }) => visitTerm(body, visitor))
+    .with({ tag: "app" }, ({ function: fnTerm, argument }) => {
       visitTerm(fnTerm, visitor);
       visitTerm(argument, visitor);
     })
@@ -73,9 +70,9 @@ export function findTerm(
   }
 
   return match(term)
-    .with({ tag: "Variable" }, () => null)
-    .with({ tag: "Abstraction" }, ({ body }) => findTerm(body, predicate))
-    .with({ tag: "Application" }, ({ function: fnTerm, argument }) => {
+    .with({ tag: "var" }, () => null)
+    .with({ tag: "abs" }, ({ body }) => findTerm(body, predicate))
+    .with({ tag: "app" }, ({ function: fnTerm, argument }) => {
       const foundInFn = findTerm(fnTerm, predicate);
       return foundInFn || findTerm(argument, predicate);
     })
@@ -96,11 +93,11 @@ export function findAllTerms(
   }
 
   match(term)
-    .with({ tag: "Variable" }, () => {})
-    .with({ tag: "Abstraction" }, ({ body }) => {
+    .with({ tag: "var" }, () => {})
+    .with({ tag: "abs" }, ({ body }) => {
       results.push(...findAllTerms(body, predicate));
     })
-    .with({ tag: "Application" }, ({ function: fnTerm, argument }) => {
+    .with({ tag: "app" }, ({ function: fnTerm, argument }) => {
       results.push(...findAllTerms(fnTerm, predicate));
       results.push(...findAllTerms(argument, predicate));
     })
@@ -114,10 +111,10 @@ export function findAllTerms(
  */
 export function countNodes(term: Term): number {
   return match(term)
-    .with({ tag: "Variable" }, () => 1)
-    .with({ tag: "Abstraction" }, ({ body }) => 1 + countNodes(body))
+    .with({ tag: "var" }, () => 1)
+    .with({ tag: "abs" }, ({ body }) => 1 + countNodes(body))
     .with(
-      { tag: "Application" },
+      { tag: "app" },
       ({ function: fnTerm, argument }) =>
         1 + countNodes(fnTerm) + countNodes(argument),
     )
@@ -129,10 +126,10 @@ export function countNodes(term: Term): number {
  */
 export function calculateDepth(term: Term): number {
   return match(term)
-    .with({ tag: "Variable" }, () => 1)
-    .with({ tag: "Abstraction" }, ({ body }) => 1 + calculateDepth(body))
+    .with({ tag: "var" }, () => 1)
+    .with({ tag: "abs" }, ({ body }) => 1 + calculateDepth(body))
     .with(
-      { tag: "Application" },
+      { tag: "app" },
       ({ function: fnTerm, argument }) =>
         1 + Math.max(calculateDepth(fnTerm), calculateDepth(argument)),
     )
@@ -149,15 +146,15 @@ export function transformTerm(
   const transformed = transformer(term);
 
   return match(transformed)
-    .with({ tag: "Variable" }, () => transformed)
-    .with({ tag: "Abstraction" }, ({ symbol, parameter, body }) => ({
-      tag: "Abstraction" as const,
+    .with({ tag: "var" }, () => transformed)
+    .with({ tag: "abs" }, ({ symbol, parameter, body }) => ({
+      tag: "abs" as const,
       symbol,
       parameter,
       body: transformTerm(body, transformer),
     }))
-    .with({ tag: "Application" }, ({ function: fnTerm, argument }) => ({
-      tag: "Application" as const,
+    .with({ tag: "app" }, ({ function: fnTerm, argument }) => ({
+      tag: "app" as const,
       function: transformTerm(fnTerm, transformer),
       argument: transformTerm(argument, transformer),
     }))
@@ -173,10 +170,10 @@ export function anyTerm(term: Term, predicate: (_t: Term) => boolean): boolean {
   }
 
   return match(term)
-    .with({ tag: "Variable" }, () => false)
-    .with({ tag: "Abstraction" }, ({ body }) => anyTerm(body, predicate))
+    .with({ tag: "var" }, () => false)
+    .with({ tag: "abs" }, ({ body }) => anyTerm(body, predicate))
     .with(
-      { tag: "Application" },
+      { tag: "app" },
       ({ function: fnTerm, argument }) =>
         anyTerm(fnTerm, predicate) || anyTerm(argument, predicate),
     )
@@ -195,10 +192,10 @@ export function allTerms(
   }
 
   return match(term)
-    .with({ tag: "Variable" }, () => true)
-    .with({ tag: "Abstraction" }, ({ body }) => allTerms(body, predicate))
+    .with({ tag: "var" }, () => true)
+    .with({ tag: "abs" }, ({ body }) => allTerms(body, predicate))
     .with(
-      { tag: "Application" },
+      { tag: "app" },
       ({ function: fnTerm, argument }) =>
         allTerms(fnTerm, predicate) && allTerms(argument, predicate),
     )
@@ -210,9 +207,9 @@ export function allTerms(
  */
 export function getChildren(term: Term): Term[] {
   return match(term)
-    .with({ tag: "Variable" }, () => [])
-    .with({ tag: "Abstraction" }, ({ body }) => [body])
-    .with({ tag: "Application" }, ({ function: fnTerm, argument }) => [
+    .with({ tag: "var" }, () => [])
+    .with({ tag: "abs" }, ({ body }) => [body])
+    .with({ tag: "app" }, ({ function: fnTerm, argument }) => [
       fnTerm,
       argument,
     ])
@@ -228,12 +225,12 @@ export function getParentChildPairs(
   const pairs: Array<{ parent: Term; child: Term }> = [];
 
   match(term)
-    .with({ tag: "Variable" }, () => {})
-    .with({ tag: "Abstraction" }, ({ body }) => {
+    .with({ tag: "var" }, () => {})
+    .with({ tag: "abs" }, ({ body }) => {
       pairs.push({ parent: term, child: body });
       pairs.push(...getParentChildPairs(body));
     })
-    .with({ tag: "Application" }, ({ function: fnTerm, argument }) => {
+    .with({ tag: "app" }, ({ function: fnTerm, argument }) => {
       pairs.push({ parent: term, child: fnTerm });
       pairs.push({ parent: term, child: argument });
       pairs.push(...getParentChildPairs(fnTerm));
@@ -252,9 +249,9 @@ export function traverseStatement(
   termVisitor: (_t: Term) => void,
 ): void {
   match(statement)
-    .with({ tag: "Binding" }, ({ term }) => visitTerm(term, termVisitor))
-    .with({ tag: "Command" }, () => {}) // Commands don't contain terms
-    .with({ tag: "Term" }, ({ term }) => visitTerm(term, termVisitor))
+    .with({ tag: "bind" }, ({ term }) => visitTerm(term, termVisitor))
+    .with({ tag: "cmd" }, () => {}) // Commands don't contain terms
+    .with({ tag: "term" }, ({ term }) => visitTerm(term, termVisitor))
     .exhaustive();
 }
 
@@ -266,14 +263,14 @@ export function transformStatement(
   termTransformer: (_t: Term) => Term,
 ): Statement {
   return match(statement)
-    .with({ tag: "Binding" }, ({ identifier, term }) => ({
-      tag: "Binding" as const,
+    .with({ tag: "bind" }, ({ identifier, term }) => ({
+      tag: "bind" as const,
       identifier,
       term: transformTerm(term, termTransformer),
     }))
-    .with({ tag: "Command" }, () => statement) // Commands don't contain terms
-    .with({ tag: "Term" }, ({ term }) => ({
-      tag: "Term" as const,
+    .with({ tag: "cmd" }, () => statement) // Commands don't contain terms
+    .with({ tag: "term" }, ({ term }) => ({
+      tag: "term" as const,
       term: transformTerm(term, termTransformer),
     }))
     .exhaustive();

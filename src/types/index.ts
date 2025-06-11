@@ -1,5 +1,5 @@
 /**
- * Type exports for LAMBSTER
+ * Type exports for lambster
  */
 
 export type { LambdaSymbol, Term, Command, Statement } from "./ast.js";

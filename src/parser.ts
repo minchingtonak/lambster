@@ -1,15 +1,15 @@
 /**
- * Main LAMBSTER parser class with tagged union support
+ * Main lambster parser class with tagged union support
  */
 
 import * as nearley from "nearley";
 import grammar from "../nearley/lambster_parser.js";
-import { ASTTransformer } from "./transform/transformer.js";
-import type { Statement, Term, Command, ParserOptions } from "./types/index.js";
-import { ParseError } from "./types/parser.js";
+import { ASTTransformer } from "./transform/transformer";
+import type { Statement, Term, Command, ParserOptions } from "./types/index";
+import { ParseError } from "./types/parser";
 
 /**
- * LAMBSTER parser with both raw and tagged union output support
+ * lambster parser with both raw and tagged union output support
  */
 export class LambsterParser {
   private nearleyParser: nearley.Parser;
@@ -87,11 +87,11 @@ export class LambsterParser {
   parseTerm(input: string): Term {
     const statement = this.parse(input);
 
-    if (statement.tag === "Term") {
+    if (statement.tag === "term") {
       return statement.term;
     }
 
-    if (statement.tag === "Binding") {
+    if (statement.tag === "bind") {
       return statement.term;
     }
 
@@ -104,7 +104,7 @@ export class LambsterParser {
   parseCommand(input: string): Command {
     const statement = this.parse(input);
 
-    if (statement.tag === "Command") {
+    if (statement.tag === "cmd") {
       return statement.command;
     }
 
@@ -167,7 +167,7 @@ export class LambsterParser {
     }
 
     switch (statement.tag) {
-      case "Binding":
+      case "bind":
         if (!statement.identifier || typeof statement.identifier !== "string") {
           throw new ParseError(
             "Invalid binding identifier",
@@ -177,11 +177,11 @@ export class LambsterParser {
         this.validateTerm(statement.term);
         break;
 
-      case "Command":
+      case "cmd":
         this.validateCommand(statement.command);
         break;
 
-      case "Term":
+      case "term":
         this.validateTerm(statement.term);
         break;
 
@@ -202,13 +202,13 @@ export class LambsterParser {
     }
 
     switch (term.tag) {
-      case "Variable":
+      case "var":
         if (!term.name || typeof term.name !== "string") {
           throw new ParseError("Invalid variable name", JSON.stringify(term));
         }
         break;
 
-      case "Abstraction":
+      case "abs":
         if (!term.parameter || typeof term.parameter !== "string") {
           throw new ParseError(
             "Invalid abstraction parameter",
@@ -221,7 +221,7 @@ export class LambsterParser {
         this.validateTerm(term.body);
         break;
 
-      case "Application":
+      case "app":
         this.validateTerm(term.function);
         this.validateTerm(term.argument);
         break;
@@ -246,12 +246,12 @@ export class LambsterParser {
     }
 
     switch (command.tag) {
-      case "Help":
-      case "Environment":
+      case "help":
+      case "env":
         // No additional validation needed
         break;
 
-      case "Unbind":
+      case "unbind":
         if (!command.identifier || typeof command.identifier !== "string") {
           throw new ParseError(
             "Invalid unbind identifier",

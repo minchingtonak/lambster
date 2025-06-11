@@ -1,5 +1,5 @@
 /**
- * LAMBSTER Tagged Union Demo
+ * lambster Tagged Union Demo
  *
  * This example demonstrates the new tagged union AST representation
  * and pattern matching capabilities using ts-pattern.
@@ -16,10 +16,10 @@ import {
   betaReduce,
   normalize,
   match,
-} from "../src/index.js";
-import type { Term } from "../src/index.js";
+} from "../src/index";
+import type { Term } from "../src/index";
 
-console.log("🚀 LAMBSTER Tagged Union Demo\n");
+console.log("🚀 lambster Tagged Union Demo\n");
 
 // 1. Basic parsing examples
 console.log("1. Basic Parsing Examples");
@@ -49,19 +49,16 @@ console.log("============================");
 const complexTerm = parseTerm("λf.λx.f (f x)");
 
 const description = match(complexTerm)
-  .with({ tag: "Variable" }, ({ name }) => `Variable: ${name}`)
-  .with({ tag: "Abstraction" }, ({ parameter, body }) => {
+  .with({ tag: "var" }, ({ name }) => `Variable: ${name}`)
+  .with({ tag: "abs" }, ({ parameter, body }) => {
     const bodyDesc = match(body)
-      .with({ tag: "Variable" }, ({ name }) => `variable ${name}`)
-      .with(
-        { tag: "Abstraction" },
-        ({ parameter }) => `abstraction over ${parameter}`,
-      )
-      .with({ tag: "Application" }, () => "application")
+      .with({ tag: "var" }, ({ name }) => `variable ${name}`)
+      .with({ tag: "abs" }, ({ parameter }) => `abstraction over ${parameter}`)
+      .with({ tag: "app" }, () => "application")
       .exhaustive();
     return `Abstraction over ${parameter} with body: ${bodyDesc}`;
   })
-  .with({ tag: "Application" }, () => `Application of function to argument`)
+  .with({ tag: "app" }, () => `Application of function to argument`)
   .exhaustive();
 
 console.log("Complex term:", prettyPrintTerm(complexTerm));
@@ -130,14 +127,14 @@ console.log("==========================================");
 
 function customEvaluate(term: Term): string {
   return match(term)
-    .with({ tag: "Variable" }, ({ name }) => `VAR(${name})`)
+    .with({ tag: "var" }, ({ name }) => `VAR(${name})`)
     .with(
-      { tag: "Abstraction" },
+      { tag: "abs" },
       ({ symbol, parameter, body }) =>
         `ABS(${symbol}${parameter}.${customEvaluate(body)})`,
     )
     .with(
-      { tag: "Application" },
+      { tag: "app" },
       ({ function: fn, argument }) =>
         `APP(${customEvaluate(fn)}, ${customEvaluate(argument)})`,
     )

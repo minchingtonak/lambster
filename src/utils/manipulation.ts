@@ -3,7 +3,7 @@
  */
 
 import { match } from "ts-pattern";
-import type { Term } from "../types/ast.js";
+import type { Term } from "../types/ast";
 
 /**
  * Generate a fresh variable name that doesn't conflict with existing names
@@ -29,8 +29,8 @@ export function generateFreshVariable(
  */
 export function substitute(term: Term, from: string, to: Term): Term {
   return match(term)
-    .with({ tag: "Variable" }, ({ name }) => (name === from ? to : term))
-    .with({ tag: "Abstraction" }, ({ symbol, parameter, body }) => {
+    .with({ tag: "var" }, ({ name }) => (name === from ? to : term))
+    .with({ tag: "abs" }, ({ symbol, parameter, body }) => {
       if (parameter === from) {
         // Variable is bound, don't substitute
         return term;
@@ -47,12 +47,12 @@ export function substitute(term: Term, from: string, to: Term): Term {
         ];
         const freshParam = generateFreshVariable(allVars, parameter);
         const renamedBody = substitute(body, parameter, {
-          tag: "Variable",
+          tag: "var",
           name: freshParam,
         });
 
         return {
-          tag: "Abstraction",
+          tag: "abs" as const,
           symbol,
           parameter: freshParam,
           body: substitute(renamedBody, from, to),
@@ -60,14 +60,14 @@ export function substitute(term: Term, from: string, to: Term): Term {
       }
 
       return {
-        tag: "Abstraction",
+        tag: "abs" as const,
         symbol,
         parameter,
         body: substitute(body, from, to),
       };
     })
-    .with({ tag: "Application" }, ({ function: fn, argument }) => ({
-      tag: "Application",
+    .with({ tag: "app" }, ({ function: fn, argument }) => ({
+      tag: "app" as const,
       function: substitute(fn, from, to),
       argument: substitute(argument, from, to),
     }))
@@ -83,25 +83,28 @@ export function alphaConvert(
   newName: string,
 ): Term {
   return match(term)
-    .with({ tag: "Variable" }, () => term)
-    .with({ tag: "Abstraction" }, ({ symbol, parameter, body }) => {
+    .with({ tag: "var" }, () => term)
+    .with({ tag: "abs" }, ({ symbol, parameter, body }) => {
       if (parameter === oldName) {
         return {
-          tag: "Abstraction",
+          tag: "abs" as const,
           symbol,
           parameter: newName,
-          body: substitute(body, oldName, { tag: "Variable", name: newName }),
+          body: substitute(body, oldName, {
+            tag: "var" as const,
+            name: newName,
+          }),
         };
       }
       return {
-        tag: "Abstraction",
+        tag: "abs" as const,
         symbol,
         parameter,
         body: alphaConvert(body, oldName, newName),
       };
     })
-    .with({ tag: "Application" }, ({ function: fn, argument }) => ({
-      tag: "Application",
+    .with({ tag: "app" }, ({ function: fn, argument }) => ({
+      tag: "app" as const,
       function: alphaConvert(fn, oldName, newName),
       argument: alphaConvert(argument, oldName, newName),
     }))
@@ -114,43 +117,31 @@ export function alphaConvert(
  */
 export function betaReduce(term: Term): Term | null {
   return match(term)
-    .with({ tag: "Variable" }, (): Term | null => null)
+    .with({ tag: "var" }, (): Term | null => null)
+    .with({ tag: "abs" }, ({ symbol, parameter, body }): Term | null => {
+      const reducedBody = betaReduce(body);
+      return reducedBody ?
+          { tag: "abs" as const, symbol, parameter, body: reducedBody }
+        : null;
+    })
     .with(
-      { tag: "Abstraction" },
-      ({ symbol, parameter, body }): Term | null => {
-        const reducedBody = betaReduce(body);
-        return reducedBody ?
-            {
-              tag: "Abstraction" as const,
-              symbol,
-              parameter,
-              body: reducedBody,
-            }
-          : null;
-      },
-    )
-    .with(
-      { tag: "Application", function: { tag: "Abstraction" } },
+      { tag: "app", function: { tag: "abs" } },
       ({ function: { parameter, body }, argument }): Term => {
         // Beta-redex: (λx.M) N → M[x := N]
         return substitute(body, parameter, argument);
       },
     )
-    .with({ tag: "Application" }, ({ function: fn, argument }): Term | null => {
+    .with({ tag: "app" }, ({ function: fn, argument }): Term | null => {
       // Try to reduce function first (call-by-name)
       const reducedFn = betaReduce(fn);
       if (reducedFn) {
-        return { tag: "Application" as const, function: reducedFn, argument };
+        return { tag: "app" as const, function: reducedFn, argument };
       }
 
       // If function can't be reduced, try argument
       const reducedArg = betaReduce(argument);
       if (reducedArg) {
-        return {
-          tag: "Application" as const,
-          function: fn,
-          argument: reducedArg,
-        };
+        return { tag: "app" as const, function: fn, argument: reducedArg };
       }
 
       return null;
@@ -184,14 +175,14 @@ export function normalize(term: Term, maxSteps = 1000): Term {
  */
 export function etaReduce(term: Term): Term {
   return match(term)
-    .with({ tag: "Variable" }, (): Term => term)
-    .with({ tag: "Abstraction" }, ({ symbol, parameter, body }): Term => {
+    .with({ tag: "var" }, (): Term => term)
+    .with({ tag: "abs" }, ({ symbol, parameter, body }): Term => {
       const reducedBody = etaReduce(body);
 
       // Check for eta-redex: λx.M x where x is not free in M
       return match(reducedBody)
         .with(
-          { tag: "Application", argument: { tag: "Variable" } },
+          { tag: "app", argument: { tag: "var" } },
           ({ function: fn, argument }): Term => {
             if (
               argument.name === parameter &&
@@ -200,7 +191,7 @@ export function etaReduce(term: Term): Term {
               return fn; // Eta-reduce
             }
             return {
-              tag: "Abstraction" as const,
+              tag: "abs" as const,
               symbol,
               parameter,
               body: reducedBody,
@@ -209,7 +200,7 @@ export function etaReduce(term: Term): Term {
         )
         .otherwise(
           (): Term => ({
-            tag: "Abstraction" as const,
+            tag: "abs" as const,
             symbol,
             parameter,
             body: reducedBody,
@@ -217,9 +208,9 @@ export function etaReduce(term: Term): Term {
         );
     })
     .with(
-      { tag: "Application" },
+      { tag: "app" },
       ({ function: fn, argument }): Term => ({
-        tag: "Application" as const,
+        tag: "app" as const,
         function: etaReduce(fn),
         argument: etaReduce(argument),
       }),
@@ -235,11 +226,11 @@ function findFreeVariables(
   bound: Set<string> = new Set(),
 ): string[] {
   return match(term)
-    .with({ tag: "Variable" }, ({ name }) => (bound.has(name) ? [] : [name]))
-    .with({ tag: "Abstraction" }, ({ parameter, body }) =>
+    .with({ tag: "var" }, ({ name }) => (bound.has(name) ? [] : [name]))
+    .with({ tag: "abs" }, ({ parameter, body }) =>
       findFreeVariables(body, new Set([...bound, parameter])),
     )
-    .with({ tag: "Application" }, ({ function: fn, argument }) => [
+    .with({ tag: "app" }, ({ function: fn, argument }) => [
       ...findFreeVariables(fn, bound),
       ...findFreeVariables(argument, bound),
     ])
@@ -251,12 +242,12 @@ function findFreeVariables(
  */
 function findAllVariables(term: Term): string[] {
   return match(term)
-    .with({ tag: "Variable" }, ({ name }) => [name])
-    .with({ tag: "Abstraction" }, ({ parameter, body }) => [
+    .with({ tag: "var" }, ({ name }) => [name])
+    .with({ tag: "abs" }, ({ parameter, body }) => [
       parameter,
       ...findAllVariables(body),
     ])
-    .with({ tag: "Application" }, ({ function: fn, argument }) => [
+    .with({ tag: "app" }, ({ function: fn, argument }) => [
       ...findAllVariables(fn),
       ...findAllVariables(argument),
     ])

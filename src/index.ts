@@ -1,5 +1,5 @@
 /**
- * LAMBSTER - Lambda Calculus Parser with Tagged Union AST
+ * lambster - Lambda Calculus Parser with Tagged Union AST
  *
  * Main entry point for the library
  */

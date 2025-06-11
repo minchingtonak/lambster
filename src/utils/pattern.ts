@@ -3,21 +3,21 @@
  */
 
 import { match } from "ts-pattern";
-import type { Term, Command, Statement } from "../types/ast.js";
+import type { Term, Command, Statement } from "../types/ast";
 
 /**
  * Evaluate a term to its string representation
  */
 export function evaluateTerm(term: Term): string {
   return match(term)
-    .with({ tag: "Variable" }, ({ name }) => name)
+    .with({ tag: "var" }, ({ name }) => name)
     .with(
-      { tag: "Abstraction" },
+      { tag: "abs" },
       ({ symbol, parameter, body }) =>
         `${symbol}${parameter}.${evaluateTerm(body)}`,
     )
     .with(
-      { tag: "Application" },
+      { tag: "app" },
       ({ function: fn, argument }) =>
         `(${evaluateTerm(fn)} ${evaluateTerm(argument)})`,
     )
@@ -29,19 +29,19 @@ export function evaluateTerm(term: Term): string {
  */
 export function prettyPrintTerm(term: Term, parenthesize = false): string {
   return match(term)
-    .with({ tag: "Variable" }, ({ name }) => name)
-    .with({ tag: "Abstraction" }, ({ symbol, parameter, body }) => {
+    .with({ tag: "var" }, ({ name }) => name)
+    .with({ tag: "abs" }, ({ symbol, parameter, body }) => {
       const result = `${symbol}${parameter}.${prettyPrintTerm(body)}`;
       return parenthesize ? `(${result})` : result;
     })
-    .with({ tag: "Application" }, ({ function: fn, argument }) => {
+    .with({ tag: "app" }, ({ function: fn, argument }) => {
       const fnStr = match(fn)
-        .with({ tag: "Abstraction" }, (abs) => prettyPrintTerm(abs, true))
+        .with({ tag: "abs" }, (abs) => prettyPrintTerm(abs, true))
         .otherwise((t) => prettyPrintTerm(t));
 
       const argStr = match(argument)
-        .with({ tag: "Application" }, (app) => prettyPrintTerm(app, true))
-        .with({ tag: "Abstraction" }, (abs) => prettyPrintTerm(abs, true))
+        .with({ tag: "app" }, (app) => prettyPrintTerm(app, true))
+        .with({ tag: "abs" }, (abs) => prettyPrintTerm(abs, true))
         .otherwise((t) => prettyPrintTerm(t));
 
       const result = `${fnStr} ${argStr}`;
@@ -55,10 +55,10 @@ export function prettyPrintTerm(term: Term, parenthesize = false): string {
  */
 export function analyzeComplexity(term: Term): number {
   return match(term)
-    .with({ tag: "Variable" }, () => 1)
-    .with({ tag: "Abstraction" }, ({ body }) => 1 + analyzeComplexity(body))
+    .with({ tag: "var" }, () => 1)
+    .with({ tag: "abs" }, ({ body }) => 1 + analyzeComplexity(body))
     .with(
-      { tag: "Application" },
+      { tag: "app" },
       ({ function: fn, argument }) =>
         1 + analyzeComplexity(fn) + analyzeComplexity(argument),
     )
@@ -73,11 +73,11 @@ export function findFreeVariables(
   bound: Set<string> = new Set(),
 ): string[] {
   return match(term)
-    .with({ tag: "Variable" }, ({ name }) => (bound.has(name) ? [] : [name]))
-    .with({ tag: "Abstraction" }, ({ parameter, body }) =>
+    .with({ tag: "var" }, ({ name }) => (bound.has(name) ? [] : [name]))
+    .with({ tag: "abs" }, ({ parameter, body }) =>
       findFreeVariables(body, new Set([...bound, parameter])),
     )
-    .with({ tag: "Application" }, ({ function: fn, argument }) => [
+    .with({ tag: "app" }, ({ function: fn, argument }) => [
       ...findFreeVariables(fn, bound),
       ...findFreeVariables(argument, bound),
     ])
@@ -89,12 +89,12 @@ export function findFreeVariables(
  */
 export function findBoundVariables(term: Term): string[] {
   return match(term)
-    .with({ tag: "Variable" }, () => [])
-    .with({ tag: "Abstraction" }, ({ parameter, body }) => [
+    .with({ tag: "var" }, () => [])
+    .with({ tag: "abs" }, ({ parameter, body }) => [
       parameter,
       ...findBoundVariables(body),
     ])
-    .with({ tag: "Application" }, ({ function: fn, argument }) => [
+    .with({ tag: "app" }, ({ function: fn, argument }) => [
       ...findBoundVariables(fn),
       ...findBoundVariables(argument),
     ])
@@ -106,12 +106,12 @@ export function findBoundVariables(term: Term): string[] {
  */
 export function findAllVariables(term: Term): string[] {
   return match(term)
-    .with({ tag: "Variable" }, ({ name }) => [name])
-    .with({ tag: "Abstraction" }, ({ parameter, body }) => [
+    .with({ tag: "var" }, ({ name }) => [name])
+    .with({ tag: "abs" }, ({ parameter, body }) => [
       parameter,
       ...findAllVariables(body),
     ])
-    .with({ tag: "Application" }, ({ function: fn, argument }) => [
+    .with({ tag: "app" }, ({ function: fn, argument }) => [
       ...findAllVariables(fn),
       ...findAllVariables(argument),
     ])
@@ -130,11 +130,11 @@ export function isClosedTerm(term: Term): boolean {
  */
 export function isNormalForm(term: Term): boolean {
   return match(term)
-    .with({ tag: "Variable" }, () => true)
-    .with({ tag: "Abstraction" }, ({ body }) => isNormalForm(body))
-    .with({ tag: "Application", function: { tag: "Abstraction" } }, () => false) // Beta-redex found
+    .with({ tag: "var" }, () => true)
+    .with({ tag: "abs" }, ({ body }) => isNormalForm(body))
+    .with({ tag: "app", function: { tag: "abs" } }, () => false) // Beta-redex found
     .with(
-      { tag: "Application" },
+      { tag: "app" },
       ({ function: fn, argument }) =>
         isNormalForm(fn) && isNormalForm(argument),
     )
@@ -147,12 +147,12 @@ export function isNormalForm(term: Term): boolean {
 export function executeCommand(command: Command): string {
   return match(command)
     .with(
-      { tag: "Help" },
+      { tag: "help" },
       () => "Available commands: help, env, unbind <identifier>",
     )
-    .with({ tag: "Environment" }, () => "Environment command executed")
+    .with({ tag: "env" }, () => "Environment command executed")
     .with(
-      { tag: "Unbind" },
+      { tag: "unbind" },
       ({ identifier }) => `Unbound identifier: ${identifier}`,
     )
     .exhaustive();
@@ -164,15 +164,15 @@ export function executeCommand(command: Command): string {
 export function describeStatement(statement: Statement): string {
   return match(statement)
     .with(
-      { tag: "Binding" },
+      { tag: "bind" },
       ({ identifier, term }) =>
         `Binding ${identifier} = ${prettyPrintTerm(term)}`,
     )
     .with(
-      { tag: "Command" },
+      { tag: "cmd" },
       ({ command }) => `Command: ${executeCommand(command)}`,
     )
-    .with({ tag: "Term" }, ({ term }) => `Term: ${prettyPrintTerm(term)}`)
+    .with({ tag: "term" }, ({ term }) => `Term: ${prettyPrintTerm(term)}`)
     .exhaustive();
 }
 
@@ -181,17 +181,14 @@ export function describeStatement(statement: Statement): string {
  */
 export function structurallyEqual(term1: Term, term2: Term): boolean {
   return match([term1, term2])
+    .with([{ tag: "var" }, { tag: "var" }], ([t1, t2]) => t1.name === t2.name)
     .with(
-      [{ tag: "Variable" }, { tag: "Variable" }],
-      ([t1, t2]) => t1.name === t2.name,
-    )
-    .with(
-      [{ tag: "Abstraction" }, { tag: "Abstraction" }],
+      [{ tag: "abs" }, { tag: "abs" }],
       ([t1, t2]) =>
         t1.parameter === t2.parameter && structurallyEqual(t1.body, t2.body),
     )
     .with(
-      [{ tag: "Application" }, { tag: "Application" }],
+      [{ tag: "app" }, { tag: "app" }],
       ([t1, t2]) =>
         structurallyEqual(t1.function, t2.function) &&
         structurallyEqual(t1.argument, t2.argument),
