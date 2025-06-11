@@ -58,7 +58,8 @@
     "parser:compile": "bunx nearleyc nearley/lambster.ne nearley/lambster_parser.js > nearley/lambster_parser.js",
     "prepare": "husky",
     "commitlint": "commitlint --edit",
-    "size": "bunx bundlesize"
+    "size": "bunx bundlesize",
+    "test": "bun test"
   },
   "dependencies": {
     "nearley": "^2.20.1",
