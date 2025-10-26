@@ -24,15 +24,15 @@ describe("Interpreter tests", () => {
         const int: Interpreter = new Interpreter({
             transports: [log => (result = log)],
             verbosity: Verbosity.NONE,
-            show_equivalent: false
+            show_equivalent: false,
         });
 
         int.evaluate("or true false");
 
-        expect(result).to.equal(">>> (λX0. (λf. X0))\n");
+        expect(result).to.equal(">>> (λX0. (λf. X0))");
 
         int.evaluate("times two three");
 
-        expect(result).to.equal(">>> (λf. (λy. (f (f (f (f (f (f y))))))))\n");
+        expect(result).to.equal(">>> (λf. (λy. (f (f (f (f (f (f y))))))))");
     });
 });
